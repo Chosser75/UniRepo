@@ -17,33 +17,33 @@ public class PeopleController : ControllerBase
         _handler = handler;
     }
 
-    // GET: api/<PeopleController>
     [HttpGet]
     public IEnumerable<Person> Get()
     {
-        return _handler.GetPeople();
+        return _handler.GetAll();
     }
 
-    // GET api/<PeopleController>/5
     [HttpGet("{id}")]
-    public string Get(int id)
+    public async Task<IActionResult> Get(Guid id)
     {
-        return "value";
+        var person = await _handler.GetAsync(id);
+
+        return person is null
+            ? NotFound()
+            : Ok(person);
     }
 
-    // POST api/<PeopleController>
     [HttpPost]
-    public void Post([FromBody] string value)
+    public async Task<Guid> Post([FromBody] Person person)
     {
+        return await _handler.AddAsync(person);
     }
 
-    // PUT api/<PeopleController>/5
     [HttpPut("{id}")]
     public void Put(int id, [FromBody] string value)
     {
     }
 
-    // DELETE api/<PeopleController>/5
     [HttpDelete("{id}")]
     public void Delete(int id)
     {

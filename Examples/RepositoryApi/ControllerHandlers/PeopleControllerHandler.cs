@@ -19,8 +19,9 @@ public class PeopleControllerHandler : IDatabaseControllerHandler
         _dbService = dbService;
     }
 
-    public IEnumerable<Person> GetPeople()
-    {
-        return _repository.GetAll();
-    }
+    public IEnumerable<Person> GetAll() => _repository.GetAll();
+
+    public async Task<Person?> GetAsync(Guid id) => await _repository.GetByIdAsync(id);
+
+    public async Task<Guid> AddAsync(Person person) => await _repository.CreateAsync(person);
 }

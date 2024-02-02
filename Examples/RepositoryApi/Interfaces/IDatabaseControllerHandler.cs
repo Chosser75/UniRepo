@@ -4,5 +4,9 @@ namespace RepositoryApi.Interfaces;
 
 public interface IDatabaseControllerHandler
 {
-    IEnumerable<Person> GetPeople();
+    IEnumerable<Person> GetAll();
+
+    Task<Person?> GetAsync(Guid id);
+
+    Task<Guid> AddAsync(Person person);
 }
