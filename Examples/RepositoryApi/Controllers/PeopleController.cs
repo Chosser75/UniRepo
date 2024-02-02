@@ -1,6 +1,6 @@
-﻿using Infrastructure.Database.Models.Entities;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using RepositoryApi.Interfaces;
+using Person = Infrastructure.Database.Models.Entities.Person;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -39,13 +39,21 @@ public class PeopleController : ControllerBase
         return await _handler.AddAsync(person);
     }
 
-    [HttpPut("{id}")]
-    public void Put(int id, [FromBody] string value)
+    [HttpPut]
+    public async Task Put([FromBody] Person person)
     {
+        await _handler.UpdateAsync(person);
+    }
+
+    [HttpPatch]
+    public async Task Patch([FromBody] Person person)
+    {
+        await _handler.UpdateModifiedFieldsAsync(person);
     }
 
     [HttpDelete("{id}")]
-    public void Delete(int id)
+    public async Task Delete(Guid id)
     {
+        await _handler.DeleteAsync(id);
     }
 }

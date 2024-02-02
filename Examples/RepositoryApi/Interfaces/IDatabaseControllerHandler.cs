@@ -9,4 +9,10 @@ public interface IDatabaseControllerHandler
     Task<Person?> GetAsync(Guid id);
 
     Task<Guid> AddAsync(Person person);
+
+    Task UpdateAsync(Person person);
+
+    Task UpdateModifiedFieldsAsync(Person person);
+
+    Task DeleteAsync(Guid id);
 }
