@@ -1,4 +1,6 @@
-﻿namespace UniRepo.Interfaces;
+﻿using System.Linq.Expressions;
+
+namespace UniRepo.Interfaces;
 
 public interface IUniversalRepository<TDbContext, TEntity, TIdType>
 {
@@ -135,4 +137,41 @@ public interface IUniversalRepository<TDbContext, TEntity, TIdType>
     /// <returns></returns>
     /// /// <exception cref="InvalidOperationException">Thrown when no entry was found by the specified primary key.</exception>
     Task DeleteAsync(TIdType id);
+
+    /// <summary>
+    /// Asynchronously executes a query on the DbSet of TEntity that is expected to return a single result,
+    /// allowing for custom shaping of the query through a function.
+    /// </summary>
+    /// <typeparam name="TResult">The type of the result expected from the query.</typeparam>
+    /// <param name="queryShaper">A function that takes an IQueryable of TEntity and returns an IQueryable of TResult.
+    /// This function defines the query to be executed.</param>
+    /// <returns>A Task representing the asynchronous operation. The Task.Result is the first instance of TResult
+    /// found by the executed query, or null if no results are found.</returns>
+    Task<TResult?> QuerySingleAsync<TResult>(Func<IQueryable<TEntity>, IQueryable<TResult>> queryShaper);
+
+    /// <summary>
+    /// Asynchronously executes a query on the DbSet of TEntity, allowing for custom shaping of the query through a function.
+    /// </summary>
+    /// <typeparam name="TResult">The type of the result expected from the query.</typeparam>
+    /// <param name="queryShaper">A function that takes an IQueryable of TEntity and returns an IQueryable of TResult.
+    /// This function defines the query to be executed.</param>
+    /// <returns>An IEnumerable of TResult, representing the result set of the executed query.</returns>
+    Task<IEnumerable<TResult>> QueryCollectionAsync<TResult>(Func<IQueryable<TEntity>, IQueryable<TResult>> queryShaper);
+
+    /// <summary>
+    /// Asynchronously retrieves a projection of an entity of type <typeparamref name="TEntity"/> based on a specified projection expression.
+    /// </summary>
+    /// <typeparam name="TProjection">The type of the projection that is to be returned.</typeparam>
+    /// <param name="projection">An expression that specifies how to project the entity into <typeparamref name="TProjection"/>.</param>
+    /// <param name="entityId">The unique identifier (GUID) of the entity to be retrieved.</param>
+    /// <remarks>
+    /// This method queries the database asynchronously for an entity of type <typeparamref name="TEntity"/> that matches the provided entity ID. 
+    /// It then applies the given projection expression to transform the entity into a <typeparamref name="TProjection"/> type.
+    /// The query ignores any configured automatic includes and does not track the retrieved entity, optimizing performance for read-only scenarios.
+    /// </remarks>
+    /// <returns>
+    /// A task that represents the asynchronous operation. The task result contains the projected entity of type <typeparamref name="TProjection"/>. 
+    /// Returns null if the entity with the specified ID is not found.
+    /// </returns>
+    Task<TProjection?> GetProjectionAsync<TProjection>(Expression<Func<TEntity, TProjection>> projection, Guid entityId);
 }

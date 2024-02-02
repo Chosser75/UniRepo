@@ -99,6 +99,33 @@ public partial class UniversalRepository<TDbContext, TEntity, TIdType> : IUniver
         await _context.SaveChangesAsync();
     }
 
+    /// <inheritdoc />
+    public async Task<TResult?> QuerySingleAsync<TResult>(Func<IQueryable<TEntity>, IQueryable<TResult>> queryShaper)
+    {
+        var shapedQuery = queryShaper(_dbSet);
+
+        return await shapedQuery.FirstOrDefaultAsync();
+    }
+
+    /// <inheritdoc />
+    public async Task<IEnumerable<TResult>> QueryCollectionAsync<TResult>(Func<IQueryable<TEntity>, IQueryable<TResult>> queryShaper)
+    {
+        var shapedQuery = queryShaper(_dbSet);
+
+        return await shapedQuery.ToListAsync();
+    }
+
+    /// <inheritdoc />
+    public async Task<TProjection?> GetProjectionAsync<TProjection>(Expression<Func<TEntity, TProjection>> projection, Guid entityId)
+    {
+        return await _dbSet
+            .IgnoreAutoIncludes()
+            .AsNoTracking()
+            .Where(o => o.Id != null && o.Id.Equals(entityId))
+            .Select(projection)
+            .FirstOrDefaultAsync();
+    }
+
     #region --------------------------- Private methods ---------------------------
 
     private static (ParameterExpression, Expression) GetQueryExpression(TIdType[] keys, IReadOnlyList<IProperty> keyProperties)
