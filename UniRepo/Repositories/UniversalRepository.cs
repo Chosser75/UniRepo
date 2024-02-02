@@ -18,6 +18,12 @@ public class UniversalRepository<TEntity, TIdType> : IUniversalRepository<TEntit
     }
 
     /// <inheritdoc />
+    public IEnumerable<TEntity> GetAll(bool isReadonly = false) =>
+        isReadonly
+        ? _dbSet.AsNoTracking()
+        : _dbSet;
+
+    /// <inheritdoc />
     public async Task<TEntity?> GetByIdAsync(TIdType id, bool isReadonly = false)
     {
         ArgumentNullException.ThrowIfNull(id);
@@ -50,6 +56,26 @@ public class UniversalRepository<TEntity, TIdType> : IUniversalRepository<TEntit
         return isReadonly
             ? await _dbSet.AsNoTracking().Where(lambda).FirstOrDefaultAsync()
             : await _dbSet.Where(lambda).FirstOrDefaultAsync();
+    }
+
+    /// <inheritdoc />
+    public async Task UpdateAsync(TEntity entity)
+    {
+        ArgumentNullException.ThrowIfNull(entity);
+
+        _dbSet.Update(entity);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task UpdateModifiedPropertiesAsync(TEntity entity)
+    {
+        ArgumentNullException.ThrowIfNull(entity);
+
+        var existingEntity = await _dbSet.IgnoreAutoIncludes().FirstOrDefaultAsync(x => x.Id != null && x.Id.Equals(entity.Id))
+            ?? throw new InvalidOperationException($"Entity of type {typeof(TEntity).Name} with id {entity.Id} not found.");
+
+        _context.Entry(existingEntity).CurrentValues.SetValues(entity);
+        await _context.SaveChangesAsync();
     }
 
     #region --------------------------- Private methods ---------------------------

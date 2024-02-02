@@ -3,6 +3,26 @@
 public interface IUniversalRepository<TEntity, in TIdType>
 {
     /// <summary>
+    /// Retrieves all entities of type <typeparamref name="TEntity"/>.
+    /// </summary>
+    /// <param name="isReadonly">
+    /// A boolean value indicating whether the entities should be retrieved in a read-only mode (AsNoTracking). 
+    /// If set to true, entities are retrieved without tracking changes (more efficient for read-only scenarios). 
+    /// If false, entities are tracked by the DbContext, allowing for subsequent updates. Default is false.
+    /// </param>
+    /// <returns>
+    /// An <see cref="IEnumerable{TEntity}"/> representing the collection of all entities.
+    /// Entities are either tracked or non-tracked based on the <paramref name="isReadonly"/> parameter.
+    /// </returns>
+    /// <remarks>
+    /// This method allows fetching the entire set of entities in a context. It's particularly useful for operations 
+    /// where either a snapshot of the data is required without the need for tracking (read-only), or when the entities 
+    /// might be updated and changes need to be tracked. Use the non-tracked option with care for large data sets as it 
+    /// can significantly impact memory usage.
+    /// </remarks>
+    public IEnumerable<TEntity> GetAll(bool isReadonly = false);
+
+    /// <summary>
     /// Asynchronously retrieves an entity of type <typeparamref name="TEntity"/> based on a composite primary key.
     /// </summary>
     /// <param name="id">The identifier of the entity to retrieve. The type of the identifier is <typeparamref name="TIdType"/>.</param>
@@ -43,4 +63,61 @@ public interface IUniversalRepository<TEntity, in TIdType>
     /// <exception cref="InvalidOperationException">Thrown when the primary key definition for the entity is not found or if no key properties are found.</exception>
     /// <exception cref="ArgumentException">Thrown when the number of provided keys does not match the number of keys for the entity.</exception>
     Task<TEntity?> GetByIdAsync(IEnumerable<TIdType> keys, bool isReadonly = false);
+
+    /// <summary>
+    /// Asynchronously updates the specified entity in the repository.
+    /// </summary>
+    /// <param name="entity">The entity to update. The entity can be in a detached state.</param>
+    /// <returns>
+    /// A task that represents the asynchronous update operation.
+    /// </returns>
+    /// <remarks>
+    /// This method uses <c>_dbSet.Update(entity)</c> to update the entity in the database.
+    /// When invoked, it performs the following operations:
+    /// <list type="bullet">
+    /// <item>
+    /// <description>If the entity is not currently being tracked by the DbContext, it attaches the entity to the DbContext.</description>
+    /// </item>
+    /// <item>
+    /// <description>It then marks the entire entity as modified. This means all property values of the entity will be sent to the database during the next call to <c>SaveChangesAsync</c>, regardless of whether they have actually changed.</description>
+    /// </item>
+    /// </list>
+    /// This method is particularly effective for updating detached entities, such as those received from an API call, deserialized from JSON, or retrieved from a different DbContext instance.
+    /// 
+    /// However, it may not be the most efficient choice if only a few properties need to be updated, as it marks all properties as modified. Additionally, for large entities with many properties, this could lead to less efficient SQL updates.
+    /// 
+    /// If concurrent updates are a concern, or if you need to update specific properties selectively, consider using the <c>UpdateModifiedPropertiesAsync</c> method.
+    /// </remarks>
+    /// <exception cref="ArgumentNullException">Thrown if the <paramref name="entity"/> is null.</exception>
+    Task UpdateAsync(TEntity entity);
+
+    /// <summary>
+    /// Asynchronously updates the specified entity in the repository in the way that only modified properties are updated.
+    /// </summary>
+    /// <param name="entity">The entity to update. The entity can be in a detached state.</param>
+    /// <returns>
+    /// A task that represents the asynchronous update operation.
+    /// </returns>
+    /// <remarks>
+    /// This method first retrieves the existing entity from the database and then applies the updated values.
+    /// <list type="bullet">
+    /// <item>
+    /// <description>Selective Update: This method first retrieves the existing entity from the database and then applies the updated values. It's more selective as it only updates the properties that have actually changed.</description>
+    /// </item>
+    /// <item>
+    /// <description>Error Checking: Includes a check to ensure the entity exists in the database before attempting to update it.</description>
+    /// </item>
+    /// /// <item>
+    /// <description>Handling Detached Entities: Particularly useful when the entity being updated is detached from the DbContext (e.g., deserialized from a request). It ensures the existing entity in the context is updated.</description>
+    /// </item>
+    /// /// <item>
+    /// <description>Performance Consideration: Involves an extra query to fetch the existing entity, which can be a performance overhead, especially for large datasets or complex entities.</description>
+    /// </item>
+    /// /// <item>
+    /// <description>Concurrency Control: Provides a level of safety against concurrent updates, as it fetches the most recent state from the database before applying changes.</description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <exception cref="ArgumentNullException">Thrown if the <paramref name="entity"/> is null.</exception>
+    Task UpdateModifiedPropertiesAsync(TEntity entity);
 }
