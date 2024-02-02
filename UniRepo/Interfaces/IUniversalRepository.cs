@@ -2,6 +2,17 @@
 
 namespace UniRepo.Interfaces;
 
+/// <summary>
+/// Represents a universal repository offering a comprehensive range of operations, including CRUD and advanced functionality, for entities in a database context.
+/// </summary>
+/// <typeparam name="TDbContext">The type of the database context. Must be a subclass of <see cref="DbContext"/>.</typeparam>
+/// <typeparam name="TEntity">The type of the entity this repository is responsible for. Must be a class that implements <see cref="IUniRepoEntity{TIdType}"/>.</typeparam>
+/// <typeparam name="TIdType">The type of the identifier used by entities in this repository.</typeparam>
+/// <remarks>
+/// This class serves as a generic repository that abstracts away the common database operations like adding, removing, or querying entities.
+/// It is designed to work with any entity type that implements the <see cref="IUniRepoEntity{TIdType}"/> interface, allowing for flexibility in defining different types of entities.
+/// The repository is tightly coupled with a specific <see cref="DbContext"/> derived type, specified by <typeparamref name="TDbContext"/>, facilitating operations within that specific database context.
+/// </remarks>
 public interface IUniversalRepository<TDbContext, TEntity, TIdType>
 {
     /// <summary>
