@@ -14,7 +14,7 @@ public static class ServiceRegistration
         var dbName = Guid.NewGuid().ToString();
         services
             .AddDbContext<UniRepoContext>(options => options.UseInMemoryDatabase(databaseName: dbName))
-            .AddUniRepo()
+            .AddUniRepo() // add the UniRepo services
             .AddScoped<IDbService, DbService>();
 
         return services;

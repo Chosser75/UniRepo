@@ -5,7 +5,7 @@ using UniRepo.Interfaces;
 
 namespace RepositoryApi.ControllerHandlers;
 
-public class PeopleControllerHandler : IDatabaseControllerHandler
+public class PeopleControllerHandler : IPeopleControllerHandler
 {
     private readonly IUniversalRepository<UniRepoContext, Person, Guid> _repository;
 
@@ -26,4 +26,27 @@ public class PeopleControllerHandler : IDatabaseControllerHandler
     public async Task UpdateModifiedFieldsAsync(Person person) => await _repository.UpdateModifiedPropertiesAsync(person);
 
     public async Task DeleteAsync(Guid id) => await _repository.DeleteAsync(id);
+
+    public async Task<string> GetFirstNameAsync(Guid id)
+    {
+        var personProjection = await _repository.GetProjectionAsync(p => new { p.FirstName }, id);
+
+        return personProjection?.FirstName ?? string.Empty;
+    }
+
+    public async Task<IEnumerable<Person>> GetYoungerAsync(DateTime date)
+    {
+        Func<IQueryable<Person>, IQueryable<Person>> queryShaper =
+            q => q.Where(a => a.DateOfBirth > date);
+
+        return await _repository.QueryCollectionAsync(queryShaper);
+    }
+
+    public async Task<Person?> GetByFirstNameAsync(string firstName)
+    {
+        Func<IQueryable<Person>, IQueryable<Person>> queryShaper =
+            q => q.Where(a => a.FirstName.Equals(firstName));
+
+        return await _repository.QuerySingleAsync(queryShaper);
+    }
 }

@@ -2,7 +2,7 @@
 
 namespace RepositoryApi.Interfaces;
 
-public interface IDatabaseControllerHandler
+public interface IPeopleControllerHandler
 {
     IEnumerable<Person> GetAll();
 
@@ -15,4 +15,10 @@ public interface IDatabaseControllerHandler
     Task UpdateModifiedFieldsAsync(Person person);
 
     Task DeleteAsync(Guid id);
+
+    Task<string> GetFirstNameAsync(Guid id);
+
+    Task<IEnumerable<Person>> GetYoungerAsync(DateTime date);
+
+    Task<Person?> GetByFirstNameAsync(string firstName);
 }

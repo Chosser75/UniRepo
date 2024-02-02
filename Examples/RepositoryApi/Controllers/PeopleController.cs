@@ -10,9 +10,9 @@ namespace RepositoryApi.Controllers;
 [ApiController]
 public class PeopleController : ControllerBase
 {
-    private readonly IDatabaseControllerHandler _handler;
+    private readonly IPeopleControllerHandler _handler;
 
-    public PeopleController(IDatabaseControllerHandler handler)
+    public PeopleController(IPeopleControllerHandler handler)
     {
         _handler = handler;
     }
@@ -32,6 +32,30 @@ public class PeopleController : ControllerBase
             ? NotFound()
             : Ok(person);
     }
+
+    [HttpGet("[action]/{id}")]
+    public async Task<IActionResult> GetFirstName(Guid id)
+    {
+        var firstName = await _handler.GetFirstNameAsync(id);
+
+        return string.IsNullOrWhiteSpace(firstName)
+            ? NotFound()
+            : Ok(firstName);
+    }
+
+    [HttpGet("[action]/{date}")]
+    public async Task<IEnumerable<Person>> GetYounger(DateTime date) => await _handler.GetYoungerAsync(date);
+
+    [HttpGet("[action]/{firstName}")]
+    public async Task<IActionResult> GetByFirstName(string firstName)
+    {
+        var person = await _handler.GetByFirstNameAsync(firstName);
+
+        return person is null
+            ? NotFound()
+            : Ok(person);
+    }
+
 
     [HttpPost]
     public async Task<Guid> Post([FromBody] Person person)

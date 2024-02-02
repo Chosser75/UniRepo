@@ -12,10 +12,11 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddInfrastructure();
-builder.Services.AddScoped<IDatabaseControllerHandler, PeopleControllerHandler>();
+builder.Services.AddScoped<IPeopleControllerHandler, PeopleControllerHandler>();
 
 var app = builder.Build();
 
+// populate sample in-memory database
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
