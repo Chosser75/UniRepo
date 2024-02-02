@@ -1,6 +1,6 @@
 ﻿namespace UniRepo.Interfaces;
 
-public interface IUniversalRepository<TEntity, in TIdType>
+public interface IUniversalRepository<TDbContext, TEntity, in TIdType>
 {
     /// <summary>
     /// Retrieves all entities of type <typeparamref name="TEntity"/>.

@@ -5,13 +5,14 @@ using UniRepo.Interfaces;
 
 namespace UniRepo.Repositories;
 
-public class UniversalRepository<TEntity, TIdType> : IUniversalRepository<TEntity, TIdType>
+public partial class UniversalRepository<TDbContext, TEntity, TIdType> : IUniversalRepository<TDbContext, TEntity, TIdType>
+    where TDbContext : DbContext
     where TEntity : class, IUniRepoEntity<TIdType>
 {
-    private readonly DbContext _context;
+    private readonly TDbContext _context;
     private readonly DbSet<TEntity> _dbSet;
 
-    public UniversalRepository(DbContext context)
+    public UniversalRepository(TDbContext context)
     {
         _context = context;
         _dbSet = context.Set<TEntity>();
@@ -67,6 +68,7 @@ public class UniversalRepository<TEntity, TIdType> : IUniversalRepository<TEntit
         await _context.SaveChangesAsync();
     }
 
+    /// <inheritdoc />
     public async Task UpdateModifiedPropertiesAsync(TEntity entity)
     {
         ArgumentNullException.ThrowIfNull(entity);
