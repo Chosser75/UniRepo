@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34330.188
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UniRepo", "UniRepo\UniRepo.csproj", "{7108C5E0-7D13-4897-9939-DB97F00B67A9}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7108C5E0-7D13-4897-9939-DB97F00B67A9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7108C5E0-7D13-4897-9939-DB97F00B67A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7108C5E0-7D13-4897-9939-DB97F00B67A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7108C5E0-7D13-4897-9939-DB97F00B67A9}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {0BEA44A9-EB91-4809-9CE9-97FDBC75831F}
+	EndGlobalSection
+EndGlobal
