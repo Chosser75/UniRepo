@@ -185,4 +185,21 @@ public interface IUniversalRepository<TDbContext, TEntity, TIdType>
     /// Returns null if the entity with the specified ID is not found.
     /// </returns>
     Task<TProjection?> GetProjectionAsync<TProjection>(Expression<Func<TEntity, TProjection>> projection, Guid entityId);
+
+    /// <summary>
+    /// Retrieves a collection of projections of an entity of type <typeparamref name="TEntity"/> based on a specified projection expression and filter expression.
+    /// </summary>
+    /// <typeparam name="TProjection">The type of the projection that is to be returned.</typeparam>
+    /// <param name="projection">An expression that specifies how to project the entity into <typeparamref name="TProjection"/>.</param>
+    /// <param name="filter">An expression that specifies how to filter entities in the <c>Where</c> method.</param>
+    /// <remarks>
+    /// This method queries the database for entities of type <typeparamref name="TEntity"/> that match the provided filter criteria. 
+    /// It then applies the given projection expression to transform the entities into a <typeparamref name="TProjection"/> type.
+    /// The query ignores any configured automatic includes and does not track retrieved entities, optimizing performance for read-only scenarios.
+    /// </remarks>
+    /// <returns>
+    /// IEnumerable collection of projected entities of type <typeparamref name="TProjection"/>. 
+    /// </returns>
+    IEnumerable<TProjection> GetProjections<TProjection>(
+        Expression<Func<TEntity, TProjection>> projection, Expression<Func<TEntity, bool>> filter);
 }

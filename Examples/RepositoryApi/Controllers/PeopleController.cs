@@ -56,6 +56,8 @@ public class PeopleController : ControllerBase
             : Ok(person);
     }
 
+    [HttpGet("[action]/{date}")]
+    public IEnumerable<string> GetYoungerNames(DateTime date) => _handler.GetYoungerNames(date);
 
     [HttpPost]
     public async Task<Guid> Post([FromBody] Person person)

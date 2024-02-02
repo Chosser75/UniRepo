@@ -49,4 +49,13 @@ public class PeopleControllerHandler : IPeopleControllerHandler
 
         return await _repository.QuerySingleAsync(queryShaper);
     }
+
+    public IEnumerable<string> GetYoungerNames(DateTime date)
+    {
+        var peopleProjections = _repository.GetProjections(
+            p => new { p.FirstName, p.LastName },
+            p => p.DateOfBirth > date);
+
+        return peopleProjections.Select(p => $"{p.FirstName} {p.LastName}");
+    }
 }

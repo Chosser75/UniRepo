@@ -137,6 +137,17 @@ public partial class UniversalRepository<TDbContext, TEntity, TIdType> : IUniver
             .FirstOrDefaultAsync();
     }
 
+    /// <inheritdoc />
+    public IEnumerable<TProjection> GetProjections<TProjection>(
+        Expression<Func<TEntity, TProjection>> projection, Expression<Func<TEntity, bool>> filter)
+    {
+        return _dbSet
+            .IgnoreAutoIncludes()
+            .AsNoTracking()
+            .Where(filter)
+            .Select(projection);
+    }
+
     #region --------------------------- Private methods ---------------------------
 
     private static (ParameterExpression, Expression) GetQueryExpression(TIdType[] keys, IReadOnlyList<IProperty> keyProperties)

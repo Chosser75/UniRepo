@@ -21,4 +21,6 @@ public interface IPeopleControllerHandler
     Task<IEnumerable<Person>> GetYoungerAsync(DateTime date);
 
     Task<Person?> GetByFirstNameAsync(string firstName);
+
+    IEnumerable<string> GetYoungerNames(DateTime date);
 }
