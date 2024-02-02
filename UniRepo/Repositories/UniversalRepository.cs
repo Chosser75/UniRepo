@@ -60,6 +60,15 @@ public partial class UniversalRepository<TDbContext, TEntity, TIdType> : IUniver
     }
 
     /// <inheritdoc />
+    public async Task<TIdType> CreateAsync(TEntity entity)
+    {
+        await _dbSet.AddAsync(entity);
+        await _context.SaveChangesAsync();
+
+        return entity.Id;
+    }
+
+    /// <inheritdoc />
     public async Task UpdateAsync(TEntity entity)
     {
         ArgumentNullException.ThrowIfNull(entity);
@@ -77,6 +86,16 @@ public partial class UniversalRepository<TDbContext, TEntity, TIdType> : IUniver
             ?? throw new InvalidOperationException($"Entity of type {typeof(TEntity).Name} with id {entity.Id} not found.");
 
         _context.Entry(existingEntity).CurrentValues.SetValues(entity);
+        await _context.SaveChangesAsync();
+    }
+
+    /// <inheritdoc />
+    public async Task DeleteAsync(TIdType id)
+    {
+        var entity = await GetByIdAsync(id)
+            ?? throw new InvalidOperationException($"Entity of type {typeof(TEntity).Name} with id {id} not found and therefore cannot be deleted.");
+
+        _dbSet.Remove(entity);
         await _context.SaveChangesAsync();
     }
 

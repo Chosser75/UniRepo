@@ -1,6 +1,6 @@
 ﻿namespace UniRepo.Interfaces;
 
-public interface IUniversalRepository<TDbContext, TEntity, in TIdType>
+public interface IUniversalRepository<TDbContext, TEntity, TIdType>
 {
     /// <summary>
     /// Retrieves all entities of type <typeparamref name="TEntity"/>.
@@ -65,7 +65,14 @@ public interface IUniversalRepository<TDbContext, TEntity, in TIdType>
     Task<TEntity?> GetByIdAsync(IEnumerable<TIdType> keys, bool isReadonly = false);
 
     /// <summary>
-    /// Asynchronously updates the specified entity in the repository.
+    /// Asynchronously creates the specified entity in the database.
+    /// </summary>
+    /// <param name="entity">The entity to create.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains the created entity's Id.</returns>
+    Task<TIdType> CreateAsync(TEntity entity);
+
+    /// <summary>
+    /// Asynchronously updates the specified entity in the database.
     /// </summary>
     /// <param name="entity">The entity to update. The entity can be in a detached state.</param>
     /// <returns>
@@ -92,7 +99,7 @@ public interface IUniversalRepository<TDbContext, TEntity, in TIdType>
     Task UpdateAsync(TEntity entity);
 
     /// <summary>
-    /// Asynchronously updates the specified entity in the repository in the way that only modified properties are updated.
+    /// Asynchronously updates the specified entity in the database in the way that only modified properties are updated.
     /// </summary>
     /// <param name="entity">The entity to update. The entity can be in a detached state.</param>
     /// <returns>
@@ -120,4 +127,12 @@ public interface IUniversalRepository<TDbContext, TEntity, in TIdType>
     /// </remarks>
     /// <exception cref="ArgumentNullException">Thrown if the <paramref name="entity"/> is null.</exception>
     Task UpdateModifiedPropertiesAsync(TEntity entity);
+
+    /// <summary>
+    /// Asynchronously deletes the entity with specified Id from the database.
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
+    /// /// <exception cref="InvalidOperationException">Thrown when no entry was found by the specified primary key.</exception>
+    Task DeleteAsync(TIdType id);
 }
