@@ -7,9 +7,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UniRepo", "UniRepo\UniRepo.
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examples", "Examples", "{31FB70DB-58B8-49A5-A507-DE2D40E9EAC0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RepositoryApi", "Examples\RepositoryApi\RepositoryApi.csproj", "{327DAB55-6AC5-401E-8E92-AE7476AF68F3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RepositoryApi", "Examples\RepositoryApi\RepositoryApi.csproj", "{327DAB55-6AC5-401E-8E92-AE7476AF68F3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infrastructure", "Examples\Infrastructure\Infrastructure.csproj", "{D5D766E7-6CA1-4713-BFB3-4C44AB6B44BF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Infrastructure", "Examples\Infrastructure\Infrastructure.csproj", "{D5D766E7-6CA1-4713-BFB3-4C44AB6B44BF}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{B8120FBC-4E4D-4519-B11A-6C77EFA500A3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UniversalRepositoryTests", "Tests\UniversalRepositoryTests\UniversalRepositoryTests.csproj", "{529ECDFE-7BE9-4C5D-8777-81B02F9103A7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -29,6 +33,10 @@ Global
 		{D5D766E7-6CA1-4713-BFB3-4C44AB6B44BF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D5D766E7-6CA1-4713-BFB3-4C44AB6B44BF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D5D766E7-6CA1-4713-BFB3-4C44AB6B44BF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{529ECDFE-7BE9-4C5D-8777-81B02F9103A7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{529ECDFE-7BE9-4C5D-8777-81B02F9103A7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{529ECDFE-7BE9-4C5D-8777-81B02F9103A7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{529ECDFE-7BE9-4C5D-8777-81B02F9103A7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -36,6 +44,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{327DAB55-6AC5-401E-8E92-AE7476AF68F3} = {31FB70DB-58B8-49A5-A507-DE2D40E9EAC0}
 		{D5D766E7-6CA1-4713-BFB3-4C44AB6B44BF} = {31FB70DB-58B8-49A5-A507-DE2D40E9EAC0}
+		{529ECDFE-7BE9-4C5D-8777-81B02F9103A7} = {B8120FBC-4E4D-4519-B11A-6C77EFA500A3}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0BEA44A9-EB91-4809-9CE9-97FDBC75831F}
