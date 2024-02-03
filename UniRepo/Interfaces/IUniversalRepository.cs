@@ -198,8 +198,8 @@ public partial interface IUniversalRepository<TDbContext, TEntity>
     /// The query ignores any configured automatic includes and does not track retrieved entities, optimizing performance for read-only scenarios.
     /// </remarks>
     /// <returns>
-    /// IEnumerable collection of projected entities of type <typeparamref name="TProjection"/>. 
+    /// A task that represents the asynchronous operation. The task result contains the projected entities of type <typeparamref name="TProjection"/>.
     /// </returns>
-    IEnumerable<TProjection> GetProjections<TProjection>(
+    Task<IEnumerable<TProjection>> GetProjectionsAsync<TProjection>(
         Expression<Func<TEntity, TProjection>> projection, Expression<Func<TEntity, bool>> filter);
 }

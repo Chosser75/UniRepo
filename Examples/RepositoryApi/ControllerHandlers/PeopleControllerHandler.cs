@@ -58,9 +58,9 @@ public class PeopleControllerHandler : IPeopleControllerHandler
         return await _repository.QuerySingleAsync(queryShaper);
     }
 
-    public IEnumerable<string> GetYoungerNames(DateTime date)
+    public async Task<IEnumerable<string>> GetYoungerNamesAsync(DateTime date)
     {
-        var peopleProjections = _repository.GetProjections(
+        var peopleProjections = await _repository.GetProjectionsAsync(
             p => new { p.FirstName, p.LastName },
             p => p.DateOfBirth > date);
 

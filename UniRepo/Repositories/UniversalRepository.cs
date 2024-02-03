@@ -161,13 +161,14 @@ public partial class UniversalRepository<TDbContext, TEntity> : IUniversalReposi
     }
 
     /// <inheritdoc />
-    public virtual IEnumerable<TProjection> GetProjections<TProjection>(
+    public virtual async Task<IEnumerable<TProjection>> GetProjectionsAsync<TProjection>(
         Expression<Func<TEntity, TProjection>> projection, Expression<Func<TEntity, bool>> filter)
     {
-        return _dbSet
+        return await _dbSet
             .AsNoTracking()
             .Where(filter)
-            .Select(projection);
+            .Select(projection)
+            .ToListAsync();
     }
 
     #region --------------------------- Private methods ---------------------------
