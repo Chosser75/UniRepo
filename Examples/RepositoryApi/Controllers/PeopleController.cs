@@ -60,9 +60,9 @@ public class PeopleController : ControllerBase
     public async Task<IEnumerable<string>> GetYoungerNames(DateTime date) => await _handler.GetYoungerNamesAsync(date);
 
     [HttpPost]
-    public async Task<Guid> Post([FromBody] Person person)
+    public async Task<Person> Post([FromBody] Person person)
     {
-        return await _handler.AddAsync(person);
+        return await _handler.CreateAsync(person);
     }
 
     [HttpPut]

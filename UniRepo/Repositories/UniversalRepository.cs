@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using System.Linq.Expressions;
+using System.Reflection;
 using UniRepo.Cache;
 using UniRepo.Interfaces;
 
@@ -40,7 +41,7 @@ public partial class UniversalRepository<TDbContext, TEntity> : IUniversalReposi
     {
         ArgumentNullException.ThrowIfNull(id);
 
-        var (keyProperty, idConverter) = EntityKeyPropertyCache.GetKeyPropertyAndConverter(typeof(TEntity), _context);
+        var (keyProperty, idConverter, _) = EntityPrimaryKeyCache.GetPrimaryKeyProperties(typeof(TEntity), _context);
 
         var convertedId = idConverter(id);
 
@@ -61,7 +62,8 @@ public partial class UniversalRepository<TDbContext, TEntity> : IUniversalReposi
     {
         ArgumentNullException.ThrowIfNull(keys);
 
-        if (_context.Model.FindEntityType(typeof(TEntity))?.FindPrimaryKey() is not { } compositeKey)
+        var (_, _, compositeKey) = EntityPrimaryKeyCache.GetPrimaryKeyProperties(typeof(TEntity), _context);
+        if (compositeKey is null)
             throw new InvalidOperationException($"Primary key for entity of type {typeof(TEntity).Name} not found.");
 
         var keysArray = keys.ToArray();
@@ -81,16 +83,14 @@ public partial class UniversalRepository<TDbContext, TEntity> : IUniversalReposi
     }
 
     /// <inheritdoc />
-    public virtual async Task<object?> CreateAsync(TEntity entity)
+    public virtual async Task<TEntity> CreateAsync(TEntity entity)
     {
         ArgumentNullException.ThrowIfNull(entity);
 
         await _dbSet.AddAsync(entity);
         await _context.SaveChangesAsync();
 
-        var (keyProperty, _) = EntityKeyPropertyCache.GetKeyPropertyAndConverter(typeof(TEntity), _context);
-
-        return keyProperty.GetValue(entity);
+        return entity;
     }
 
     /// <inheritdoc />
@@ -107,21 +107,17 @@ public partial class UniversalRepository<TDbContext, TEntity> : IUniversalReposi
     {
         ArgumentNullException.ThrowIfNull(entity);
 
-        var (keyProperty, _) = EntityKeyPropertyCache.GetKeyPropertyAndConverter(typeof(TEntity), _context);
+        var (keyProperty, _, primaryKey) = EntityPrimaryKeyCache.GetPrimaryKeyProperties(typeof(TEntity), _context);
 
-        var entityId = keyProperty.GetValue(entity);
-
-        if (entityId == null)
-            throw new InvalidOperationException($"Entity of type {typeof(TEntity).Name} has a null value for its key property {keyProperty.Name}.");
-
-        var existingEntity = await _dbSet.IgnoreAutoIncludes()
-                                 .FirstOrDefaultAsync(e => EF.Property<object>(e, keyProperty.Name).Equals(entityId))
-                             ?? throw new InvalidOperationException($"Entity of type {typeof(TEntity).Name} with id {entityId} not found.");
+        var existingEntity = primaryKey.Properties.Count > 1
+            ? await GetEntityByCompositeKeyAsync(entity, primaryKey)
+            : await GetEntityBySingleKeyAsync(keyProperty, entity);
 
         _context.Entry(existingEntity).CurrentValues.SetValues(entity);
         await _context.SaveChangesAsync();
     }
 
+    // TODO: handle composite key
     /// <inheritdoc />
     public virtual async Task DeleteAsync(object id)
     {
@@ -172,6 +168,35 @@ public partial class UniversalRepository<TDbContext, TEntity> : IUniversalReposi
     }
 
     #region --------------------------- Private methods ---------------------------
+
+    private async Task<TEntity> GetEntityBySingleKeyAsync(PropertyInfo keyProperty, TEntity entity)
+    {
+        var entityId = keyProperty.GetValue(entity);
+
+        if (entityId == null)
+            throw new InvalidOperationException($"Entity of type {typeof(TEntity).Name} has a null value for its key property {keyProperty.Name}.");
+
+        return await _dbSet.IgnoreAutoIncludes()
+            .FirstOrDefaultAsync(e => EF.Property<object>(e, keyProperty.Name).Equals(entityId))
+               ?? throw new InvalidOperationException($"Entity of type {typeof(TEntity).Name} with id {entityId} not found.");
+    }
+
+    private async Task<TEntity> GetEntityByCompositeKeyAsync(TEntity entity, IKey primaryKey)
+    {
+        var keys = primaryKey.Properties.Select(p => GetPropertyInfoValue(p.PropertyInfo, entity)).ToArray();
+
+        var existingEntity = await GetByCompositeIdAsync(keys);
+
+        if (existingEntity is null)
+            throw new InvalidOperationException(
+                $"Entity of type {typeof(TEntity).Name} with id {string.Join(", ", keys.Select(k => k.ToString()))} not found.");
+
+        return existingEntity!;
+    }
+
+    private object GetPropertyInfoValue(PropertyInfo? propertyInfo, TEntity entity) =>
+        propertyInfo?.GetValue(entity)
+        ?? throw new InvalidOperationException($"Primary key for entity type {entity.GetType().Name} not found.");
 
     private static (ParameterExpression, Expression) GetQueryExpression(object[] keys, IReadOnlyList<IProperty> keyProperties)
     {

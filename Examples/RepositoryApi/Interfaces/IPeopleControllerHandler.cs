@@ -10,7 +10,7 @@ public interface IPeopleControllerHandler
 
     Task<Person?> GetAsync(IEnumerable<Guid> keys);
 
-    Task<Guid> AddAsync(Person person);
+    Task<Person> CreateAsync(Person person);
 
     Task UpdateAsync(Person person);
 

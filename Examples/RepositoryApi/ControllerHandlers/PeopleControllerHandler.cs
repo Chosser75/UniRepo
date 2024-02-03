@@ -21,12 +21,7 @@ public class PeopleControllerHandler : IPeopleControllerHandler
 
     public async Task<Person?> GetAsync(IEnumerable<Guid> keys) => await _repository.GetByIdAsync(keys);
 
-    public async Task<Guid> AddAsync(Person person)
-    {
-        var idObject = await _repository.CreateAsync(person);
-
-        return idObject is null ? Guid.Empty : (Guid)idObject;
-    }
+    public async Task<Person> CreateAsync(Person person) => await _repository.CreateAsync(person);
 
     public async Task UpdateAsync(Person person) => await _repository.UpdateAsync(person);
 

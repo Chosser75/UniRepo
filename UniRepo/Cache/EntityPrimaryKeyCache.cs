@@ -1,19 +1,23 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
 using System.Collections.Concurrent;
 using System.Linq.Expressions;
 using System.Reflection;
 
 namespace UniRepo.Cache;
 
-public class EntityKeyPropertyCache
+public class EntityPrimaryKeyCache
 {
-    private static readonly ConcurrentDictionary<Type, (PropertyInfo PropertyInfo, Func<object, object> IdConverter)> Cache = new();
+    private static readonly ConcurrentDictionary<Type,
+        (PropertyInfo PropertyInfo, Func<object, object> IdConverter, IKey PrimaryKey)> Cache = new();
 
-    public static (PropertyInfo PropertyInfo, Func<object, object> IdConverter) GetKeyPropertyAndConverter(Type entityType, DbContext context)
+    public static (PropertyInfo PropertyInfo, Func<object, object> IdConverter, IKey PrimaryKey) GetPrimaryKeyProperties
+        (Type entityType, DbContext context)
     {
         return Cache.GetOrAdd(entityType, type =>
         {
-            var propertyInfo = context.Model.FindEntityType(type)?.FindPrimaryKey()?.Properties
+            var primaryKey = context.Model.FindEntityType(type)?.FindPrimaryKey();
+            var propertyInfo = primaryKey?.Properties
                 .FirstOrDefault()?.PropertyInfo;
 
             if (propertyInfo == null)
@@ -28,7 +32,7 @@ public class EntityKeyPropertyCache
 
             var convert = Expression.Lambda<Func<object, object>>(body, parameter).Compile();
 
-            return (propertyInfo, convert);
+            return (propertyInfo, convert, primaryKey!);
         });
     }
 }

@@ -70,7 +70,7 @@ public class UniversalRepositoryIntegrationTests
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
-    public async Task GetByCompositeId_EntityExists_ReturnsEntity(bool isReadonly)
+    public async Task GetByCompositeId_EntityWithCompositeKeyExists_ReturnsEntity(bool isReadonly)
     {
         await DbService.PopulateDatabaseAsync(_context, 5);
         var userRole = DbService.GetUserRole();
@@ -83,6 +83,23 @@ public class UniversalRepositoryIntegrationTests
         Assert.NotNull(resultUserRole);
         Assert.Equal(userRole.UserId, resultUserRole!.UserId);
         Assert.Equal(userRole.RoleId, resultUserRole!.RoleId);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task GetByCompositeId_EntityWithSingleKeyExists_ReturnsEntity(bool isReadonly)
+    {
+        await DbService.PopulateDatabaseAsync(_context, 5);
+        var person = DbService.GetPerson();
+        await _context.AddAsync(person);
+        await _context.SaveChangesAsync();
+
+        var resultPerson = await _peopleRepository.GetByCompositeIdAsync(
+            new object[] { person.Id }, isReadonly);
+
+        Assert.NotNull(resultPerson);
+        Assert.Equal(person.Id, resultPerson!.Id);
     }
 
     [Fact]
@@ -119,10 +136,10 @@ public class UniversalRepositoryIntegrationTests
     {
         var person = DbService.GetPerson();
 
-        var resultId = await _peopleRepository.CreateAsync(person);
+        var returnPerson = await _peopleRepository.CreateAsync(person);
 
-        Assert.NotNull(resultId);
-        Assert.Equal(person.Id, (Guid)resultId!);
+        Assert.NotNull(returnPerson);
+        Assert.Equal(person, returnPerson);
 
         var resultPerson = await _peopleRepository.GetByIdAsync(person.Id);
 
@@ -160,7 +177,7 @@ public class UniversalRepositoryIntegrationTests
     }
 
     [Fact]
-    public async Task Patch_ValidEntity_UpdatesEntity()
+    public async Task Patch_ValidSungleKeyEntity_UpdatesEntity()
     {
         var updatedFirstName = "UpdatedFirstName";
         var person = DbService.GetPerson();
@@ -174,6 +191,23 @@ public class UniversalRepositoryIntegrationTests
 
         Assert.NotNull(resultPerson);
         Assert.Equal(updatedFirstName, resultPerson!.FirstName);
+    }
+
+    [Fact]
+    public async Task Patch_ValidCompositeKeyEntity_UpdatesEntity()
+    {
+        var updatedRoleName = Guid.NewGuid().ToString();
+        var userRole = DbService.GetUserRole();
+        await _context.AddAsync(userRole);
+        await _context.SaveChangesAsync();
+        userRole.RoleName = updatedRoleName;
+
+        await _rolesRepository.PatchAsync(userRole);
+
+        var resultRole = await _rolesRepository.GetByCompositeIdAsync(new object[] { userRole.UserId, userRole.RoleId });
+
+        Assert.NotNull(resultRole);
+        Assert.Equal(updatedRoleName, resultRole!.RoleName);
     }
 
     [Fact]

@@ -80,8 +80,8 @@ public partial interface IUniversalRepository<TDbContext, TEntity>
     /// Asynchronously creates the specified entity in the database.
     /// </summary>
     /// <param name="entity">The entity to create.</param>
-    /// <returns>A task that represents the asynchronous operation. The task result contains the created entity's Id.</returns>
-    Task<object?> CreateAsync(TEntity entity);
+    /// <returns>A task that represents the asynchronous operation. The task result contains the created entity.</returns>
+    Task<TEntity> CreateAsync(TEntity entity);
 
     /// <summary>
     /// Asynchronously updates the specified entity in the database.
