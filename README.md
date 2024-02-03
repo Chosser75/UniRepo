@@ -7,7 +7,7 @@ A quick example of how to use the UniversalRepository in your application:
 var dbContext = new YourDbContext();
 
 // Create an instance of the repository:
-var repository = new UniversalRepository<YourDbContext, YourEntity, YourEntityPrimaryKeyType>(dbContext);
+var repository = new UniversalRepository<YourDbContext, YourEntity>(dbContext);
 
 // Use the repository for CRUD operations:
 var entity = await repository.GetByIdAsync(yourEntityId);
