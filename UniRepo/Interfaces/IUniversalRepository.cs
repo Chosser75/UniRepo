@@ -6,14 +6,13 @@ namespace UniRepo.Interfaces;
 /// Represents a universal repository offering a comprehensive range of operations, including CRUD and advanced functionality, for entities in a database context.
 /// </summary>
 /// <typeparam name="TDbContext">The type of the database context. Must be a subclass of <see cref="DbContext"/>.</typeparam>
-/// <typeparam name="TEntity">The type of the entity this repository is responsible for. Must be a class that implements <see cref="IUniRepoEntity{TIdType}"/>.</typeparam>
-/// <typeparam name="TIdType">The type of the identifier used by entities in this repository.</typeparam>
+/// <typeparam name="TEntity">The type of the entity this repository is responsible for.</typeparam>
 /// <remarks>
 /// This class serves as a generic repository that abstracts away the common database operations like adding, removing, or querying entities.
-/// It is designed to work with any entity type that implements the <see cref="IUniRepoEntity{TIdType}"/> interface, allowing for flexibility in defining different types of entities.
+/// It is designed to work with any entity type.
 /// The repository is tightly coupled with a specific <see cref="DbContext"/> derived type, specified by <typeparamref name="TDbContext"/>, facilitating operations within that specific database context.
 /// </remarks>
-public partial interface IUniversalRepository<TDbContext, TEntity, TIdType>
+public partial interface IUniversalRepository<TDbContext, TEntity>
 {
     /// <summary>
     /// Retrieves all entities of type <typeparamref name="TEntity"/>.
@@ -38,7 +37,7 @@ public partial interface IUniversalRepository<TDbContext, TEntity, TIdType>
     /// <summary>
     /// Asynchronously retrieves an entity of type <typeparamref name="TEntity"/> based on a composite primary key.
     /// </summary>
-    /// <param name="id">The identifier of the entity to retrieve. The type of the identifier is <typeparamref name="TIdType"/>.</param>
+    /// <param name="id">The identifier of the entity to retrieve.</param>
     /// <param name="isReadonly">A boolean value indicating whether the entity should be retrieved in a read-only mode (AsNoTracking). 
     /// If set to true, the entity is retrieved without tracking changes (more efficient for read-only scenarios). 
     /// If false, the entity is tracked by the DbContext, allowing for subsequent updates.
@@ -52,7 +51,7 @@ public partial interface IUniversalRepository<TDbContext, TEntity, TIdType>
     /// Tracked entities are suitable for scenarios where updates to the entity are expected, as changes are tracked by the DbContext and can be persisted back to the database.
     /// Non-tracked entities are more efficient for read-only operations, as they do not incur the overhead of change tracking.
     /// </remarks>
-    Task<TEntity?> GetByIdAsync(TIdType id, bool isReadonly = false);
+    Task<TEntity?> GetByIdAsync(object id, bool isReadonly = false);
 
     /// <summary>
     /// Asynchronously retrieves an entity of type <typeparamref name="TEntity"/> based on a composite primary key.
@@ -75,14 +74,14 @@ public partial interface IUniversalRepository<TDbContext, TEntity, TIdType>
     /// </returns>
     /// <exception cref="InvalidOperationException">Thrown when the primary key definition for the entity is not found or if no key properties are found.</exception>
     /// <exception cref="ArgumentException">Thrown when the number of provided keys does not match the number of keys for the entity.</exception>
-    Task<TEntity?> GetByIdAsync(IEnumerable<TIdType> keys, bool isReadonly = false);
+    Task<TEntity?> GetByCompositeIdAsync(IEnumerable<object> keys, bool isReadonly = false);
 
     /// <summary>
     /// Asynchronously creates the specified entity in the database.
     /// </summary>
     /// <param name="entity">The entity to create.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains the created entity's Id.</returns>
-    Task<TIdType> CreateAsync(TEntity entity);
+    Task<object?> CreateAsync(TEntity entity);
 
     /// <summary>
     /// Asynchronously updates the specified entity in the database.
@@ -147,7 +146,7 @@ public partial interface IUniversalRepository<TDbContext, TEntity, TIdType>
     /// <param name="id"></param>
     /// <returns></returns>
     /// /// <exception cref="InvalidOperationException">Thrown when no entry was found by the specified primary key.</exception>
-    Task DeleteAsync(TIdType id);
+    Task DeleteAsync(object id);
 
     /// <summary>
     /// Asynchronously executes a query on the DbSet of TEntity that is expected to return a single result,
@@ -174,7 +173,7 @@ public partial interface IUniversalRepository<TDbContext, TEntity, TIdType>
     /// </summary>
     /// <typeparam name="TProjection">The type of the projection that is to be returned.</typeparam>
     /// <param name="projection">An expression that specifies how to project the entity into <typeparamref name="TProjection"/>.</param>
-    /// <param name="entityId">The unique identifier (GUID) of the entity to be retrieved.</param>
+    /// <param name="filter">An expression that specifies how to filter entities in the <c>Where</c> method.</param>
     /// <remarks>
     /// This method queries the database asynchronously for an entity of type <typeparamref name="TEntity"/> that matches the provided entity ID. 
     /// It then applies the given projection expression to transform the entity into a <typeparamref name="TProjection"/> type.
@@ -184,7 +183,8 @@ public partial interface IUniversalRepository<TDbContext, TEntity, TIdType>
     /// A task that represents the asynchronous operation. The task result contains the projected entity of type <typeparamref name="TProjection"/>. 
     /// Returns null if the entity with the specified ID is not found.
     /// </returns>
-    Task<TProjection?> GetProjectionAsync<TProjection>(Expression<Func<TEntity, TProjection>> projection, Guid entityId);
+    Task<TProjection?> GetProjectionAsync<TProjection>(
+        Expression<Func<TEntity, TProjection>> projection, Expression<Func<TEntity, bool>> filter);
 
     /// <summary>
     /// Retrieves a collection of projections of an entity of type <typeparamref name="TEntity"/> based on a specified projection expression and filter expression.

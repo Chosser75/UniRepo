@@ -1,8 +1,6 @@
-﻿using UniRepo.Interfaces;
+﻿namespace Infrastructure.Database.Models.Base;
 
-namespace Infrastructure.Database.Models.Base;
-
-public class HasId : IUniRepoEntity<Guid>
+public class HasId
 {
     public Guid Id { get; set; } = Guid.NewGuid();
 }

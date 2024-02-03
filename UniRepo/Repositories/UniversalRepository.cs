@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using System.Linq.Expressions;
+using UniRepo.Cache;
 using UniRepo.Interfaces;
 
 namespace UniRepo.Repositories;
@@ -9,16 +10,15 @@ namespace UniRepo.Repositories;
 /// Represents a universal repository offering a comprehensive range of operations, including CRUD and advanced functionality, for entities in a database context.
 /// </summary>
 /// <typeparam name="TDbContext">The type of the database context. Must be a subclass of <see cref="DbContext"/>.</typeparam>
-/// <typeparam name="TEntity">The type of the entity this repository is responsible for. Must be a class that implements <see cref="IUniRepoEntity{TIdType}"/>.</typeparam>
-/// <typeparam name="TIdType">The type of the identifier used by entities in this repository.</typeparam>
+/// <typeparam name="TEntity">The type of the entity this repository is responsible for.</typeparam>
 /// <remarks>
 /// This class serves as a generic repository that abstracts away the common database operations like adding, removing, or querying entities.
-/// It is designed to work with any entity type that implements the <see cref="IUniRepoEntity{TIdType}"/> interface, allowing for flexibility in defining different types of entities.
+/// It is designed to work with any entity type.
 /// The repository is tightly coupled with a specific <see cref="DbContext"/> derived type, specified by <typeparamref name="TDbContext"/>, facilitating operations within that specific database context.
 /// </remarks>
-public partial class UniversalRepository<TDbContext, TEntity, TIdType> : IUniversalRepository<TDbContext, TEntity, TIdType>
+public partial class UniversalRepository<TDbContext, TEntity> : IUniversalRepository<TDbContext, TEntity>
     where TDbContext : DbContext
-    where TEntity : class, IUniRepoEntity<TIdType>
+    where TEntity : class
 {
     private readonly TDbContext _context;
     private readonly DbSet<TEntity> _dbSet;
@@ -36,25 +36,35 @@ public partial class UniversalRepository<TDbContext, TEntity, TIdType> : IUniver
         : _dbSet;
 
     /// <inheritdoc />
-    public virtual async Task<TEntity?> GetByIdAsync(TIdType id, bool isReadonly = false)
+    public virtual async Task<TEntity?> GetByIdAsync(object id, bool isReadonly = false)
     {
         ArgumentNullException.ThrowIfNull(id);
 
-        return isReadonly
-            ? await _dbSet.AsNoTracking().FirstOrDefaultAsync(e => e.Id != null && e.Id.Equals(id))
-            : await _dbSet.FindAsync(id);
+        var (keyProperty, idConverter) = EntityKeyPropertyCache.GetKeyPropertyAndConverter(typeof(TEntity), _context);
+
+        var convertedId = idConverter(id);
+
+        if (!isReadonly) return await _dbSet.FindAsync(convertedId);
+
+        var parameter = Expression.Parameter(typeof(TEntity), "e");
+        var property = Expression.Property(parameter, keyProperty.Name);
+        var keyVal = Expression.Constant(convertedId, keyProperty.PropertyType);
+        var equals = Expression.Equal(property, keyVal);
+        var lambda = Expression.Lambda<Func<TEntity, bool>>(equals, parameter);
+
+        return await _dbSet.AsNoTracking().Where(lambda).FirstOrDefaultAsync();
     }
 
 
     /// <inheritdoc />
-    public virtual async Task<TEntity?> GetByIdAsync(IEnumerable<TIdType> keys, bool isReadonly = false)
+    public virtual async Task<TEntity?> GetByCompositeIdAsync(IEnumerable<object> keys, bool isReadonly = false)
     {
         ArgumentNullException.ThrowIfNull(keys);
 
-        var keysArray = keys.ToArray();
-
         if (_context.Model.FindEntityType(typeof(TEntity))?.FindPrimaryKey() is not { } compositeKey)
             throw new InvalidOperationException($"Primary key for entity of type {typeof(TEntity).Name} not found.");
+
+        var keysArray = keys.ToArray();
 
         var keyProperties = compositeKey.Properties;
 
@@ -71,12 +81,16 @@ public partial class UniversalRepository<TDbContext, TEntity, TIdType> : IUniver
     }
 
     /// <inheritdoc />
-    public virtual async Task<TIdType> CreateAsync(TEntity entity)
+    public virtual async Task<object?> CreateAsync(TEntity entity)
     {
+        ArgumentNullException.ThrowIfNull(entity);
+
         await _dbSet.AddAsync(entity);
         await _context.SaveChangesAsync();
 
-        return entity.Id;
+        var (keyProperty, _) = EntityKeyPropertyCache.GetKeyPropertyAndConverter(typeof(TEntity), _context);
+
+        return keyProperty.GetValue(entity);
     }
 
     /// <inheritdoc />
@@ -93,15 +107,23 @@ public partial class UniversalRepository<TDbContext, TEntity, TIdType> : IUniver
     {
         ArgumentNullException.ThrowIfNull(entity);
 
-        var existingEntity = await _dbSet.IgnoreAutoIncludes().FirstOrDefaultAsync(x => x.Id != null && x.Id.Equals(entity.Id))
-            ?? throw new InvalidOperationException($"Entity of type {typeof(TEntity).Name} with id {entity.Id} not found.");
+        var (keyProperty, _) = EntityKeyPropertyCache.GetKeyPropertyAndConverter(typeof(TEntity), _context);
+
+        var entityId = keyProperty.GetValue(entity);
+
+        if (entityId == null)
+            throw new InvalidOperationException($"Entity of type {typeof(TEntity).Name} has a null value for its key property {keyProperty.Name}.");
+
+        var existingEntity = await _dbSet.IgnoreAutoIncludes()
+                                 .FirstOrDefaultAsync(e => EF.Property<object>(e, keyProperty.Name).Equals(entityId))
+                             ?? throw new InvalidOperationException($"Entity of type {typeof(TEntity).Name} with id {entityId} not found.");
 
         _context.Entry(existingEntity).CurrentValues.SetValues(entity);
         await _context.SaveChangesAsync();
     }
 
     /// <inheritdoc />
-    public virtual async Task DeleteAsync(TIdType id)
+    public virtual async Task DeleteAsync(object id)
     {
         var entity = await GetByIdAsync(id)
             ?? throw new InvalidOperationException($"Entity of type {typeof(TEntity).Name} with id {id} not found and therefore cannot be deleted.");
@@ -119,7 +141,8 @@ public partial class UniversalRepository<TDbContext, TEntity, TIdType> : IUniver
     }
 
     /// <inheritdoc />
-    public virtual async Task<IEnumerable<TResult>> QueryCollectionAsync<TResult>(Func<IQueryable<TEntity>, IQueryable<TResult>> queryShaper)
+    public virtual async Task<IEnumerable<TResult>> QueryCollectionAsync<TResult>(
+        Func<IQueryable<TEntity>, IQueryable<TResult>> queryShaper)
     {
         var shapedQuery = queryShaper(_dbSet);
 
@@ -127,12 +150,12 @@ public partial class UniversalRepository<TDbContext, TEntity, TIdType> : IUniver
     }
 
     /// <inheritdoc />
-    public virtual async Task<TProjection?> GetProjectionAsync<TProjection>(Expression<Func<TEntity, TProjection>> projection, Guid entityId)
+    public virtual async Task<TProjection?> GetProjectionAsync<TProjection>(
+        Expression<Func<TEntity, TProjection>> projection, Expression<Func<TEntity, bool>> filter)
     {
         return await _dbSet
-            .IgnoreAutoIncludes()
             .AsNoTracking()
-            .Where(o => o.Id != null && o.Id.Equals(entityId))
+            .Where(filter)
             .Select(projection)
             .FirstOrDefaultAsync();
     }
@@ -142,7 +165,6 @@ public partial class UniversalRepository<TDbContext, TEntity, TIdType> : IUniver
         Expression<Func<TEntity, TProjection>> projection, Expression<Func<TEntity, bool>> filter)
     {
         return _dbSet
-            .IgnoreAutoIncludes()
             .AsNoTracking()
             .Where(filter)
             .Select(projection);
@@ -150,7 +172,7 @@ public partial class UniversalRepository<TDbContext, TEntity, TIdType> : IUniver
 
     #region --------------------------- Private methods ---------------------------
 
-    private static (ParameterExpression, Expression) GetQueryExpression(TIdType[] keys, IReadOnlyList<IProperty> keyProperties)
+    private static (ParameterExpression, Expression) GetQueryExpression(object[] keys, IReadOnlyList<IProperty> keyProperties)
     {
         var parameter = Expression.Parameter(typeof(TEntity), "e");
         Expression? predicate = null;
@@ -159,13 +181,14 @@ public partial class UniversalRepository<TDbContext, TEntity, TIdType> : IUniver
         {
             var keyProperty = keyProperties[i];
             var keyName = keyProperty.Name;
-            var keyVal = Expression.Constant(keys[i], typeof(TIdType));
+            var keyType = keyProperty.ClrType;
+            var keyVal = Expression.Constant(keys[i], keyType);
 
             var property = Expression.Property(parameter, keyName);
             var equals = Expression.Equal(property, keyVal);
 
             predicate = predicate == null ? equals : Expression.AndAlso(predicate, equals)
-                ?? throw new InvalidOperationException("No key properties found.");
+                                                     ?? throw new InvalidOperationException("No key properties found.");
         }
 
         return (parameter, predicate!);

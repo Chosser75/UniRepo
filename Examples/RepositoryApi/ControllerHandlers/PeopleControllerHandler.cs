@@ -7,10 +7,10 @@ namespace RepositoryApi.ControllerHandlers;
 
 public class PeopleControllerHandler : IPeopleControllerHandler
 {
-    private readonly IUniversalRepository<UniRepoContext, Person, Guid> _repository;
+    private readonly IUniversalRepository<UniRepoContext, Person> _repository;
 
     public PeopleControllerHandler(
-        IUniversalRepository<UniRepoContext, Person, Guid> repository)
+        IUniversalRepository<UniRepoContext, Person> repository)
     {
         _repository = repository;
     }
@@ -21,7 +21,12 @@ public class PeopleControllerHandler : IPeopleControllerHandler
 
     public async Task<Person?> GetAsync(IEnumerable<Guid> keys) => await _repository.GetByIdAsync(keys);
 
-    public async Task<Guid> AddAsync(Person person) => await _repository.CreateAsync(person);
+    public async Task<Guid> AddAsync(Person person)
+    {
+        var idObject = await _repository.CreateAsync(person);
+
+        return idObject is null ? Guid.Empty : (Guid)idObject;
+    }
 
     public async Task UpdateAsync(Person person) => await _repository.UpdateAsync(person);
 
@@ -31,7 +36,8 @@ public class PeopleControllerHandler : IPeopleControllerHandler
 
     public async Task<string> GetFirstNameAsync(Guid id)
     {
-        var personProjection = await _repository.GetProjectionAsync(p => new { p.FirstName }, id);
+        var personProjection = await _repository.GetProjectionAsync(
+            p => new { p.FirstName }, p => p.Id == id);
 
         return personProjection?.FirstName ?? string.Empty;
     }

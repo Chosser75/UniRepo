@@ -10,9 +10,9 @@ namespace RepositoryApi.Controllers
     public class UserRolesController : ControllerBase
     {
         // The repository is injected directly into the controller for simplicity. Normally you would use a handler.
-        private readonly IUniversalRepository<UniRepoContext, UserRole, Guid> _repository;
+        private readonly IUniversalRepository<UniRepoContext, UserRole> _repository;
 
-        public UserRolesController(IUniversalRepository<UniRepoContext, UserRole, Guid> repository)
+        public UserRolesController(IUniversalRepository<UniRepoContext, UserRole> repository)
         {
             _repository = repository;
         }
@@ -26,7 +26,7 @@ namespace RepositoryApi.Controllers
         [HttpGet("{key1}/{key2}")]
         public async Task<IActionResult> GetByCompositeKey(Guid key1, Guid key2)
         {
-            var userRole = await _repository.GetByIdAsync(new[] { key1, key2 });
+            var userRole = await _repository.GetByCompositeIdAsync(new object[] { key1, key2 });
 
             return userRole is null
                 ? NotFound()
