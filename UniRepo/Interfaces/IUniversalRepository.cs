@@ -139,7 +139,7 @@ public interface IUniversalRepository<TDbContext, TEntity, TIdType>
     /// </list>
     /// </remarks>
     /// <exception cref="ArgumentNullException">Thrown if the <paramref name="entity"/> is null.</exception>
-    Task UpdateModifiedPropertiesAsync(TEntity entity);
+    Task PatchAsync(TEntity entity);
 
     /// <summary>
     /// Asynchronously deletes the entity with specified Id from the database.

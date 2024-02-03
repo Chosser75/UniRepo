@@ -8,6 +8,8 @@ public interface IPeopleControllerHandler
 
     Task<Person?> GetAsync(Guid id);
 
+    Task<Person?> GetAsync(IEnumerable<Guid> keys);
+
     Task<Guid> AddAsync(Person person);
 
     Task UpdateAsync(Person person);

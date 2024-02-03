@@ -89,7 +89,7 @@ public partial class UniversalRepository<TDbContext, TEntity, TIdType> : IUniver
     }
 
     /// <inheritdoc />
-    public async Task UpdateModifiedPropertiesAsync(TEntity entity)
+    public async Task PatchAsync(TEntity entity)
     {
         ArgumentNullException.ThrowIfNull(entity);
 

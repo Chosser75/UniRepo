@@ -1,13 +1,11 @@
-﻿using UniRepo.Interfaces;
+﻿using Infrastructure.Database.Models.Base;
 
 namespace Infrastructure.Database.Models.Entities;
 
 #nullable disable
 
-public class Person : IUniRepoEntity<Guid>
+public class Person : HasId
 {
-    public Guid Id { get; set; } = Guid.NewGuid();
-
     public string FirstName { get; set; }
 
     public string LastName { get; set; }

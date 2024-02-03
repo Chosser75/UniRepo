@@ -19,11 +19,13 @@ public class PeopleControllerHandler : IPeopleControllerHandler
 
     public async Task<Person?> GetAsync(Guid id) => await _repository.GetByIdAsync(id);
 
+    public async Task<Person?> GetAsync(IEnumerable<Guid> keys) => await _repository.GetByIdAsync(keys);
+
     public async Task<Guid> AddAsync(Person person) => await _repository.CreateAsync(person);
 
     public async Task UpdateAsync(Person person) => await _repository.UpdateAsync(person);
 
-    public async Task UpdateModifiedFieldsAsync(Person person) => await _repository.UpdateModifiedPropertiesAsync(person);
+    public async Task UpdateModifiedFieldsAsync(Person person) => await _repository.PatchAsync(person);
 
     public async Task DeleteAsync(Guid id) => await _repository.DeleteAsync(id);
 

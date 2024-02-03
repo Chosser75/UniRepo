@@ -10,4 +10,12 @@ public class UniRepoContext : DbContext
     }
 
     public DbSet<Person> People { get; set; }
+
+    public DbSet<UserRole> UserRoles { get; set; }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<UserRole>()
+            .HasKey(e => new { e.UserId, e.RoleId });
+    }
 }
