@@ -114,12 +114,11 @@ public interface IUniversalRepository<TDbContext, TEntity, TIdType>
     /// <summary>
     /// Asynchronously updates the specified entity in the database in the way that only modified properties are updated.
     /// </summary>
-    /// <param name="entity">The entity to update. The entity can be in a detached state.</param>
+    /// <param name="entity">The entity with updated values. The entity is identified by its ID.</param>
     /// <returns>
-    /// A task that represents the asynchronous update operation.
+    /// A task representing the asynchronous operation of updating the entity.
     /// </returns>
     /// <remarks>
-    /// This method first retrieves the existing entity from the database and then applies the updated values.
     /// <list type="bullet">
     /// <item>
     /// <description>Selective Update: This method first retrieves the existing entity from the database and then applies the updated values. It's more selective as it only updates the properties that have actually changed.</description>
@@ -127,13 +126,14 @@ public interface IUniversalRepository<TDbContext, TEntity, TIdType>
     /// <item>
     /// <description>Error Checking: Includes a check to ensure the entity exists in the database before attempting to update it.</description>
     /// </item>
-    /// /// <item>
-    /// <description>Handling Detached Entities: Particularly useful when the entity being updated is detached from the DbContext (e.g., deserialized from a request). It ensures the existing entity in the context is updated.</description>
+    /// <item>
+    /// <description>Handling Detached Entities: Particularly useful when the entity being updated is detached from the DbContext (e.g., deserialized from a request). It ensures the existing entity in the context is updated.
+    /// Facilitates tracking of which specific properties were modified, useful in scenarios like audit logging.</description>
     /// </item>
-    /// /// <item>
+    /// <item>
     /// <description>Performance Consideration: Involves an extra query to fetch the existing entity, which can be a performance overhead, especially for large datasets or complex entities.</description>
     /// </item>
-    /// /// <item>
+    /// <item>
     /// <description>Concurrency Control: Provides a level of safety against concurrent updates, as it fetches the most recent state from the database before applying changes.</description>
     /// </item>
     /// </list>
