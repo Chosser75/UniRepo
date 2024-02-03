@@ -225,7 +225,7 @@ public class UniversalRepositoryIntegrationTests
     }
 
     [Fact]
-    public async Task Delete_EntityExists_DeletesEntity()
+    public async Task Delete_EntityWithSingleKeyExists_DeletesEntity()
     {
         var person = DbService.GetPerson();
         await _context.AddAsync(person);
@@ -236,6 +236,24 @@ public class UniversalRepositoryIntegrationTests
         var resultPerson = await _peopleRepository.GetByIdAsync(person.Id);
 
         Assert.Null(resultPerson);
+    }
+
+    [Fact]
+    public async Task Delete_EntityWithCompositeKeyExists_DeletesEntity()
+    {
+        var userRole = DbService.GetUserRole();
+        await _context.AddAsync(userRole);
+        await _context.SaveChangesAsync();
+        var userRoleFromDatabase = await _rolesRepository.GetByCompositeIdAsync(
+            new object[] { userRole.UserId, userRole.RoleId });
+        Assert.NotNull(userRoleFromDatabase);
+
+        await _rolesRepository.DeleteAsync(new object[] { userRole.UserId, userRole.RoleId });
+
+        var resultUserRole = await _rolesRepository.GetByCompositeIdAsync(
+            new object[] { userRole.UserId, userRole.RoleId });
+
+        Assert.Null(resultUserRole);
     }
 
     [Fact]

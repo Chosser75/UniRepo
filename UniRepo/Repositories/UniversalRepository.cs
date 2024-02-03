@@ -117,12 +117,13 @@ public partial class UniversalRepository<TDbContext, TEntity> : IUniversalReposi
         await _context.SaveChangesAsync();
     }
 
-    // TODO: handle composite key
     /// <inheritdoc />
     public virtual async Task DeleteAsync(object id)
     {
-        var entity = await GetByIdAsync(id)
-            ?? throw new InvalidOperationException($"Entity of type {typeof(TEntity).Name} with id {id} not found and therefore cannot be deleted.");
+        var entity = (id is IEnumerable<object> keys
+            ? await GetByCompositeIdAsync(keys)
+            : await GetByIdAsync(id))
+                ?? throw new InvalidOperationException($"Entity of type {typeof(TEntity).Name} with id {id} not found and therefore cannot be deleted.");
 
         _dbSet.Remove(entity);
         await _context.SaveChangesAsync();
