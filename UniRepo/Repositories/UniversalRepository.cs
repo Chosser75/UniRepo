@@ -30,13 +30,13 @@ public partial class UniversalRepository<TDbContext, TEntity, TIdType> : IUniver
     }
 
     /// <inheritdoc />
-    public IEnumerable<TEntity> GetAll(bool isReadonly = false) =>
+    public virtual IEnumerable<TEntity> GetAll(bool isReadonly = false) =>
         isReadonly
         ? _dbSet.AsNoTracking()
         : _dbSet;
 
     /// <inheritdoc />
-    public async Task<TEntity?> GetByIdAsync(TIdType id, bool isReadonly = false)
+    public virtual async Task<TEntity?> GetByIdAsync(TIdType id, bool isReadonly = false)
     {
         ArgumentNullException.ThrowIfNull(id);
 
@@ -47,7 +47,7 @@ public partial class UniversalRepository<TDbContext, TEntity, TIdType> : IUniver
 
 
     /// <inheritdoc />
-    public async Task<TEntity?> GetByIdAsync(IEnumerable<TIdType> keys, bool isReadonly = false)
+    public virtual async Task<TEntity?> GetByIdAsync(IEnumerable<TIdType> keys, bool isReadonly = false)
     {
         ArgumentNullException.ThrowIfNull(keys);
 
@@ -71,7 +71,7 @@ public partial class UniversalRepository<TDbContext, TEntity, TIdType> : IUniver
     }
 
     /// <inheritdoc />
-    public async Task<TIdType> CreateAsync(TEntity entity)
+    public virtual async Task<TIdType> CreateAsync(TEntity entity)
     {
         await _dbSet.AddAsync(entity);
         await _context.SaveChangesAsync();
@@ -80,7 +80,7 @@ public partial class UniversalRepository<TDbContext, TEntity, TIdType> : IUniver
     }
 
     /// <inheritdoc />
-    public async Task UpdateAsync(TEntity entity)
+    public virtual async Task UpdateAsync(TEntity entity)
     {
         ArgumentNullException.ThrowIfNull(entity);
 
@@ -89,7 +89,7 @@ public partial class UniversalRepository<TDbContext, TEntity, TIdType> : IUniver
     }
 
     /// <inheritdoc />
-    public async Task PatchAsync(TEntity entity)
+    public virtual async Task PatchAsync(TEntity entity)
     {
         ArgumentNullException.ThrowIfNull(entity);
 
@@ -101,7 +101,7 @@ public partial class UniversalRepository<TDbContext, TEntity, TIdType> : IUniver
     }
 
     /// <inheritdoc />
-    public async Task DeleteAsync(TIdType id)
+    public virtual async Task DeleteAsync(TIdType id)
     {
         var entity = await GetByIdAsync(id)
             ?? throw new InvalidOperationException($"Entity of type {typeof(TEntity).Name} with id {id} not found and therefore cannot be deleted.");
@@ -111,7 +111,7 @@ public partial class UniversalRepository<TDbContext, TEntity, TIdType> : IUniver
     }
 
     /// <inheritdoc />
-    public async Task<TResult?> QuerySingleAsync<TResult>(Func<IQueryable<TEntity>, IQueryable<TResult>> queryShaper)
+    public virtual async Task<TResult?> QuerySingleAsync<TResult>(Func<IQueryable<TEntity>, IQueryable<TResult>> queryShaper)
     {
         var shapedQuery = queryShaper(_dbSet);
 
@@ -119,7 +119,7 @@ public partial class UniversalRepository<TDbContext, TEntity, TIdType> : IUniver
     }
 
     /// <inheritdoc />
-    public async Task<IEnumerable<TResult>> QueryCollectionAsync<TResult>(Func<IQueryable<TEntity>, IQueryable<TResult>> queryShaper)
+    public virtual async Task<IEnumerable<TResult>> QueryCollectionAsync<TResult>(Func<IQueryable<TEntity>, IQueryable<TResult>> queryShaper)
     {
         var shapedQuery = queryShaper(_dbSet);
 
@@ -127,7 +127,7 @@ public partial class UniversalRepository<TDbContext, TEntity, TIdType> : IUniver
     }
 
     /// <inheritdoc />
-    public async Task<TProjection?> GetProjectionAsync<TProjection>(Expression<Func<TEntity, TProjection>> projection, Guid entityId)
+    public virtual async Task<TProjection?> GetProjectionAsync<TProjection>(Expression<Func<TEntity, TProjection>> projection, Guid entityId)
     {
         return await _dbSet
             .IgnoreAutoIncludes()
@@ -138,7 +138,7 @@ public partial class UniversalRepository<TDbContext, TEntity, TIdType> : IUniver
     }
 
     /// <inheritdoc />
-    public IEnumerable<TProjection> GetProjections<TProjection>(
+    public virtual IEnumerable<TProjection> GetProjections<TProjection>(
         Expression<Func<TEntity, TProjection>> projection, Expression<Func<TEntity, bool>> filter)
     {
         return _dbSet
