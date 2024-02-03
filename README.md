@@ -3,10 +3,10 @@ Welcome to the UniRepo, a flexible and efficient ORM repository designed for .NE
 
 A quick example of how to use the UniversalRepository in your application:
 
-// Initialize your DbContext
+// Initialize your DbContext/n
 var dbContext = new YourDbContext();
 
-// Create an instance of the repository
+// Create an instance of the repository/n
 var repository = new UniversalRepository<YourDbContext, YourEntity, YourEntityPrimaryKeyType>(dbContext);
 
 // Use the repository for CRUD operations
