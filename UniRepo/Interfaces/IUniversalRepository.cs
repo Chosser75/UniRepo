@@ -13,7 +13,7 @@ namespace UniRepo.Interfaces;
 /// It is designed to work with any entity type that implements the <see cref="IUniRepoEntity{TIdType}"/> interface, allowing for flexibility in defining different types of entities.
 /// The repository is tightly coupled with a specific <see cref="DbContext"/> derived type, specified by <typeparamref name="TDbContext"/>, facilitating operations within that specific database context.
 /// </remarks>
-public interface IUniversalRepository<TDbContext, TEntity, TIdType>
+public partial interface IUniversalRepository<TDbContext, TEntity, TIdType>
 {
     /// <summary>
     /// Retrieves all entities of type <typeparamref name="TEntity"/>.
