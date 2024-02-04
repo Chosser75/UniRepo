@@ -14,7 +14,7 @@ namespace UniRepo.Repositories;
 /// <typeparam name="TEntity">The type of the entity this repository is responsible for.</typeparam>
 /// <remarks>
 /// This class serves as a generic repository that abstracts away the common database operations like adding, removing, or querying entities.
-/// It is designed to work with any entity type.
+/// It is designed to work with any Entity Framework Core DbContext and entity type.
 /// The repository is tightly coupled with a specific <see cref="DbContext"/> derived type, specified by <typeparamref name="TDbContext"/>, facilitating operations within that specific database context.
 /// </remarks>
 public partial class UniversalRepository<TDbContext, TEntity> : IUniversalRepository<TDbContext, TEntity>
@@ -41,6 +41,9 @@ public partial class UniversalRepository<TDbContext, TEntity> : IUniversalReposi
     {
         ArgumentNullException.ThrowIfNull(id);
 
+        if (id is IEnumerable<object> keys)
+            return await GetByCompositeIdAsync(keys, isReadonly);
+
         var (keyProperty, idConverter, _) = EntityPrimaryKeyCache.GetPrimaryKeyProperties(typeof(TEntity), _context);
 
         var convertedId = idConverter(id);
@@ -55,7 +58,6 @@ public partial class UniversalRepository<TDbContext, TEntity> : IUniversalReposi
 
         return await _dbSet.AsNoTracking().Where(lambda).FirstOrDefaultAsync();
     }
-
 
     /// <inheritdoc />
     public virtual async Task<TEntity?> GetByCompositeIdAsync(IEnumerable<object> keys, bool isReadonly = false)

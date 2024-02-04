@@ -35,9 +35,9 @@ public partial interface IUniversalRepository<TDbContext, TEntity>
     public IEnumerable<TEntity> GetAll(bool isReadonly = false);
 
     /// <summary>
-    /// Asynchronously retrieves an entity of type <typeparamref name="TEntity"/> based on a composite primary key.
+    /// Asynchronously retrieves an entity of type <typeparamref name="TEntity"/> based on a single or composite primary key.
     /// </summary>
-    /// <param name="id">The identifier of the entity to retrieve.</param>
+    /// <param name="id">The identifier of the entity to retrieve. Can be a single or a composite primary key. A composite key should be passed as an IEnumerable{object}.</param>
     /// <param name="isReadonly">A boolean value indicating whether the entity should be retrieved in a read-only mode (AsNoTracking). 
     /// If set to true, the entity is retrieved without tracking changes (more efficient for read-only scenarios). 
     /// If false, the entity is tracked by the DbContext, allowing for subsequent updates.
@@ -54,10 +54,10 @@ public partial interface IUniversalRepository<TDbContext, TEntity>
     Task<TEntity?> GetByIdAsync(object id, bool isReadonly = false);
 
     /// <summary>
-    /// Asynchronously retrieves an entity of type <typeparamref name="TEntity"/> based on a composite primary key.
+    /// Asynchronously retrieves an entity of type <typeparamref name="TEntity"/> based on a single or composite primary key.
     /// Starts tracking found entity.
     /// </summary>
-    /// <param name="keys">An IEnumerable collection of keys representing the composite primary key of the entity.
+    /// <param name="keys">An IEnumerable collection of keys representing the composite primary key of the entity. If the entity has a single primary key, its value should be passed as IEnumerable{object} as well.
     /// The number and order of keys should match the entity's primary key definition.</param>
     /// <param name="isReadonly">A boolean value indicating whether the entity should be retrieved in a read-only mode (AsNoTracking). 
     /// If set to true, the entity is retrieved without tracking changes (more efficient for read-only scenarios). 

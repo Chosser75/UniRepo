@@ -40,7 +40,7 @@ public class UniversalRepositoryIntegrationTests
     }
 
     [Fact]
-    public async Task GetById_EntityExists_ReturnsEntity()
+    public async Task GetById_EntityWithSingleKeyExists_ReturnsEntity()
     {
         await DbService.PopulateDatabaseAsync(_context, 5);
         var person = DbService.GetPerson();
@@ -51,6 +51,21 @@ public class UniversalRepositoryIntegrationTests
 
         Assert.NotNull(resultPerson);
         Assert.Equal(person.Id, resultPerson!.Id);
+    }
+
+    [Fact]
+    public async Task GetById_EntityWithCompositeKeyExists_ReturnsEntity()
+    {
+        await DbService.PopulateDatabaseAsync(_context, 5);
+        var userRole = DbService.GetUserRole();
+        await _context.AddAsync(userRole);
+        await _context.SaveChangesAsync();
+
+        var resultUserRole = await _rolesRepository.GetByIdAsync(new object[] { userRole.UserId, userRole.RoleId });
+
+        Assert.NotNull(resultUserRole);
+        Assert.Equal(userRole.UserId, resultUserRole!.UserId);
+        Assert.Equal(userRole.RoleId, resultUserRole!.RoleId);
     }
 
     [Fact]
