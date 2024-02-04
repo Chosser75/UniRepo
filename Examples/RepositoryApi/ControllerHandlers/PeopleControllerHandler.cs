@@ -19,7 +19,9 @@ public class PeopleControllerHandler : IPeopleControllerHandler
 
     public async Task<Person?> GetAsync(Guid id) => await _repository.GetByIdAsync(id);
 
-    public async Task<Person?> GetAsync(IEnumerable<Guid> keys) => await _repository.GetByIdAsync(keys);
+    public async Task<Person?> GetBySingleIdAsync(IEnumerable<object> keys) => await _repository.GetByIdAsync(keys);
+
+    public async Task<Person?> GetByCompositeIdAsync(IEnumerable<object> keys) => await _repository.GetByCompositeIdAsync(keys);
 
     public async Task<Person> CreateAsync(Person person) => await _repository.CreateAsync(person);
 

@@ -8,7 +8,9 @@ public interface IPeopleControllerHandler
 
     Task<Person?> GetAsync(Guid id);
 
-    Task<Person?> GetAsync(IEnumerable<Guid> keys);
+    Task<Person?> GetBySingleIdAsync(IEnumerable<object> keys);
+
+    Task<Person?> GetByCompositeIdAsync(IEnumerable<object> keys);
 
     Task<Person> CreateAsync(Person person);
 

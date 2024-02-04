@@ -34,6 +34,26 @@ public class PeopleController : ControllerBase
     }
 
     [HttpGet("[action]/{id}")]
+    public async Task<IActionResult> GetBySingleAsByCompositeKey(Guid id)
+    {
+        var person = await _handler.GetByCompositeIdAsync(new object[] { id });
+
+        return person is null
+            ? NotFound()
+            : Ok(person);
+    }
+
+    [HttpGet("[action]/{id}")]
+    public async Task<IActionResult> GetByCompositeAsBySingleKey(Guid id)
+    {
+        var person = await _handler.GetBySingleIdAsync(new object[] { id });
+
+        return person is null
+            ? NotFound()
+            : Ok(person);
+    }
+
+    [HttpGet("[action]/{id}")]
     public async Task<IActionResult> GetFirstName(Guid id)
     {
         var firstName = await _handler.GetFirstNameAsync(id);
