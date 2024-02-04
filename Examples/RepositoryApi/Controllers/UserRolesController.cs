@@ -23,10 +23,20 @@ namespace RepositoryApi.Controllers
             return _repository.GetAll();
         }
 
-        [HttpGet("{key1}/{key2}")]
+        [HttpGet("[action]/{key1}/{key2}")]
         public async Task<IActionResult> GetByCompositeKey(Guid key1, Guid key2)
         {
             var userRole = await _repository.GetByCompositeIdAsync(new object[] { key1, key2 });
+
+            return userRole is null
+                ? NotFound()
+                : Ok(userRole);
+        }
+
+        [HttpGet("[action]/{key1}/{key2}")]
+        public async Task<IActionResult> GetBySingleKey(Guid key1, Guid key2)
+        {
+            var userRole = await _repository.GetByIdAsync(new object[] { key1, key2 });
 
             return userRole is null
                 ? NotFound()
