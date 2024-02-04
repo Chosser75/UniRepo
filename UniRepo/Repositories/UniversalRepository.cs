@@ -132,6 +132,8 @@ public partial class UniversalRepository<TDbContext, TEntity> : IUniversalReposi
     /// <inheritdoc />
     public virtual async Task<TResult?> QuerySingleAsync<TResult>(Func<IQueryable<TEntity>, IQueryable<TResult>> queryShaper)
     {
+        ArgumentNullException.ThrowIfNull(queryShaper);
+
         var shapedQuery = queryShaper(_dbSet);
 
         return await shapedQuery.FirstOrDefaultAsync();
@@ -141,6 +143,8 @@ public partial class UniversalRepository<TDbContext, TEntity> : IUniversalReposi
     public virtual async Task<IEnumerable<TResult>> QueryCollectionAsync<TResult>(
         Func<IQueryable<TEntity>, IQueryable<TResult>> queryShaper)
     {
+        ArgumentNullException.ThrowIfNull(queryShaper);
+
         var shapedQuery = queryShaper(_dbSet);
 
         return await shapedQuery.ToListAsync();
@@ -150,6 +154,9 @@ public partial class UniversalRepository<TDbContext, TEntity> : IUniversalReposi
     public virtual async Task<TProjection?> GetProjectionAsync<TProjection>(
         Expression<Func<TEntity, TProjection>> projection, Expression<Func<TEntity, bool>> filter)
     {
+        ArgumentNullException.ThrowIfNull(projection);
+        ArgumentNullException.ThrowIfNull(filter);
+
         return await _dbSet
             .AsNoTracking()
             .Where(filter)
@@ -161,6 +168,9 @@ public partial class UniversalRepository<TDbContext, TEntity> : IUniversalReposi
     public virtual async Task<IEnumerable<TProjection>> GetProjectionsAsync<TProjection>(
         Expression<Func<TEntity, TProjection>> projection, Expression<Func<TEntity, bool>> filter)
     {
+        ArgumentNullException.ThrowIfNull(projection);
+        ArgumentNullException.ThrowIfNull(filter);
+
         return await _dbSet
             .AsNoTracking()
             .Where(filter)

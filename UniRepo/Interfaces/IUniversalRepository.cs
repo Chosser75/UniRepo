@@ -172,15 +172,22 @@ public partial interface IUniversalRepository<TDbContext, TEntity>
     /// Asynchronously retrieves a projection of an entity of type <typeparamref name="TEntity"/> based on a specified projection expression.
     /// </summary>
     /// <typeparam name="TProjection">The type of the projection that is to be returned.</typeparam>
-    /// <param name="projection">An expression that specifies how to project the entity into <typeparamref name="TProjection"/>.</param>
-    /// <param name="filter">An expression that specifies how to filter entities in the <c>Where</c> method.</param>
+    /// <param name="projection">
+    /// An expression that specifies how to project the entity into <typeparamref name="TProjection"/>.
+    /// Example: <c>entity => new { entity.Id, entity.Name }</c>
+    /// The projection above will return an anonymous type with the Id and Name properties of the entity.
+    /// </param>
+    /// <param name="filter">
+    /// An expression that specifies how to filter entities in the <c>Where</c> method.
+    /// Example: <c>entity => entity.Id == id || entity.Name == name</c>
+    /// </param>
     /// <remarks>
     /// This method queries the database asynchronously for an entity of type <typeparamref name="TEntity"/> that matches the provided entity ID. 
     /// It then applies the given projection expression to transform the entity into a <typeparamref name="TProjection"/> type.
-    /// The query ignores any configured automatic includes and does not track the retrieved entity, optimizing performance for read-only scenarios.
+    /// The query does not track the retrieved entity, optimizing performance for read-only scenarios.
     /// </remarks>
     /// <returns>
-    /// A task that represents the asynchronous operation. The task result contains the projected entity of type <typeparamref name="TProjection"/>. 
+    /// A task that represents the asynchronous operation. The task result contains an anonymous type with projected properties of the entity of type <typeparamref name="TProjection"/>. 
     /// Returns null if the entity with the specified ID is not found.
     /// </returns>
     Task<TProjection?> GetProjectionAsync<TProjection>(
@@ -190,15 +197,22 @@ public partial interface IUniversalRepository<TDbContext, TEntity>
     /// Retrieves a collection of projections of an entity of type <typeparamref name="TEntity"/> based on a specified projection expression and filter expression.
     /// </summary>
     /// <typeparam name="TProjection">The type of the projection that is to be returned.</typeparam>
-    /// <param name="projection">An expression that specifies how to project the entity into <typeparamref name="TProjection"/>.</param>
-    /// <param name="filter">An expression that specifies how to filter entities in the <c>Where</c> method.</param>
+    /// <param name="projection">
+    /// An expression that specifies how to project the entity into <typeparamref name="TProjection"/>.
+    /// Example: <c>entity => new { entity.Id, entity.Name }</c>
+    /// The projection above will return an anonymous type with the Id and Name properties of the entity.
+    /// </param>
+    /// <param name="filter">
+    /// An expression that specifies how to filter entities in the <c>Where</c> method.
+    /// Example: <c>entity => entity.Id == id || entity.Name == name</c>
+    /// </param>
     /// <remarks>
     /// This method queries the database for entities of type <typeparamref name="TEntity"/> that match the provided filter criteria. 
     /// It then applies the given projection expression to transform the entities into a <typeparamref name="TProjection"/> type.
-    /// The query ignores any configured automatic includes and does not track retrieved entities, optimizing performance for read-only scenarios.
+    /// The query does not track retrieved entities, optimizing performance for read-only scenarios.
     /// </remarks>
     /// <returns>
-    /// A task that represents the asynchronous operation. The task result contains the projected entities of type <typeparamref name="TProjection"/>.
+    /// A task that represents the asynchronous operation. The task result contains a collection of anonymous types with projected properties of the entity of type <typeparamref name="TProjection"/>. 
     /// </returns>
     Task<IEnumerable<TProjection>> GetProjectionsAsync<TProjection>(
         Expression<Func<TEntity, TProjection>> projection, Expression<Func<TEntity, bool>> filter);

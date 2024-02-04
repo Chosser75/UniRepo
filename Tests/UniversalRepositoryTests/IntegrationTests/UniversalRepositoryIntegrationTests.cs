@@ -267,4 +267,136 @@ public class UniversalRepositoryIntegrationTests
     {
         await Assert.ThrowsAsync<ArgumentNullException>(() => _peopleRepository.DeleteAsync(id: null!));
     }
+
+    [Fact]
+    public async Task QuerySingleAsync_EntityExists_ReturnsEntity()
+    {
+        var firstName = "TestFirstName";
+        var lastName = "TestLastName";
+        await DbService.PopulateDatabaseAsync(_context, 5);
+        var person = DbService.GetPerson();
+        person.FirstName = firstName;
+        person.LastName = lastName;
+        await _context.AddAsync(person);
+        await _context.SaveChangesAsync();
+
+        Func<IQueryable<TestPerson>, IQueryable<TestPerson>> queryShaper =
+            q => q.Where(a => a.FirstName.Equals(firstName) && a.LastName.Equals(lastName));
+
+        var resultPerson = await _peopleRepository.QuerySingleAsync(queryShaper);
+
+        Assert.NotNull(resultPerson);
+        Assert.Equal(person.Id, resultPerson!.Id);
+    }
+
+    [Fact]
+    public async Task QuerySingleAsync_EntityDoesNotExists_ReturnsEntity()
+    {
+        var firstName = "TestFirstName";
+        var lastName = "TestLastName";
+
+        Func<IQueryable<TestPerson>, IQueryable<TestPerson>> queryShaper =
+            q => q.Where(a => a.FirstName.Equals(firstName) && a.LastName.Equals(lastName));
+
+        var resultPerson = await _peopleRepository.QuerySingleAsync(queryShaper);
+
+        Assert.Null(resultPerson);
+    }
+
+    [Fact]
+    public async Task QueryCollectionAsync_EntitiesExist_ReturnsEntities()
+    {
+        var firstName = "TestFirstName";
+        var lastName = "TestLastName";
+        await DbService.PopulateDatabaseAsync(_context, 5);
+        var person1 = DbService.GetPerson();
+        person1.FirstName = firstName;
+        person1.LastName = lastName;
+        var person2 = DbService.GetPerson();
+        person2.FirstName = firstName;
+        person2.LastName = lastName;
+        await _context.AddRangeAsync(person1, person2);
+        await _context.SaveChangesAsync();
+
+        Func<IQueryable<TestPerson>, IQueryable<TestPerson>> queryShaper =
+            q => q.Where(a => a.FirstName.Equals(firstName) && a.LastName.Equals(lastName));
+
+        var resultIds = (await _peopleRepository.QueryCollectionAsync(queryShaper)).Select(p => p.Id).ToList();
+
+        Assert.NotNull(resultIds);
+        Assert.Equal(2, resultIds!.Count);
+        Assert.Contains(person1.Id, resultIds);
+        Assert.Contains(person2.Id, resultIds);
+    }
+
+    [Fact]
+    public async Task QueryCollectionAsync_EntityDoesNotExist_ReturnsEmptyCollection()
+    {
+        Func<IQueryable<TestPerson>, IQueryable<TestPerson>> queryShaper =
+            q => q.Where(a => a.FirstName.Equals("TestFirstName") && a.LastName.Equals("TestLastName"));
+        var result = await _peopleRepository.QueryCollectionAsync(queryShaper);
+        Assert.NotNull(result);
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public async Task GetProjectionAsync_EntityExists_ReturnsEntityProjection()
+    {
+        var firstName = "TestFirstName";
+        var lastName = "TestLastName";
+        await DbService.PopulateDatabaseAsync(_context, 5);
+        var person = DbService.GetPerson();
+        person.FirstName = firstName;
+        person.LastName = lastName;
+        await _context.AddAsync(person);
+        await _context.SaveChangesAsync();
+
+        var resultProjection = await _peopleRepository.GetProjectionAsync(
+            p => new { p.LastName }, p => p.FirstName == firstName);
+
+        Assert.NotNull(resultProjection);
+        Assert.Equal(lastName, resultProjection!.LastName);
+    }
+
+    [Fact]
+    public async Task GetProjectionAsync_EntityDoesNotExist_ReturnsNull()
+    {
+        var resultProjection = await _peopleRepository.GetProjectionAsync(
+            p => new { p.LastName }, p => p.FirstName == "TestFirstName");
+
+        Assert.Null(resultProjection);
+    }
+
+    [Fact]
+    public async Task GetProjectionsAsync_EntitiesExist_ReturnsEntitiesProjections()
+    {
+        var firstName = "TestFirstName";
+        var lastName = "TestLastName";
+        await DbService.PopulateDatabaseAsync(_context, 5);
+        var person1 = DbService.GetPerson();
+        person1.FirstName = firstName;
+        person1.LastName = lastName;
+        var person2 = DbService.GetPerson();
+        person2.FirstName = firstName;
+        person2.LastName = lastName;
+        await _context.AddRangeAsync(person1, person2);
+        await _context.SaveChangesAsync();
+
+        var resultProjections = (await _peopleRepository.GetProjectionsAsync(
+            p => new { p.LastName }, p => p.FirstName == firstName)).ToList();
+
+        Assert.NotNull(resultProjections);
+        Assert.Equal(2, resultProjections!.Count);
+        Assert.Equal(lastName, resultProjections![0].LastName);
+        Assert.Equal(lastName, resultProjections![1].LastName);
+    }
+
+    [Fact]
+    public async Task GetProjectionsAsync_EntitiesDoNotExist_ReturnsEmptyCollection()
+    {
+        var resultProjections = await _peopleRepository.GetProjectionsAsync(
+                       p => new { p.LastName }, p => p.FirstName == "TestFirstName");
+        Assert.NotNull(resultProjections);
+        Assert.Empty(resultProjections);
+    }
 }
