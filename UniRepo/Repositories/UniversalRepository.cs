@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
+using System.Collections.Concurrent;
 using System.Linq.Expressions;
 using System.Reflection;
-using UniRepo.Cache;
 using UniRepo.Interfaces;
 
 namespace UniRepo.Repositories;
@@ -23,6 +23,8 @@ public partial class UniversalRepository<TDbContext, TEntity> : IUniversalReposi
 {
     private readonly TDbContext _context;
     private readonly DbSet<TEntity> _dbSet;
+    private static readonly ConcurrentDictionary<Type,
+        (PropertyInfo PropertyInfo, Func<object, object> IdConverter, IKey PrimaryKey)> Cache = new();
 
     public UniversalRepository(TDbContext context)
     {
@@ -44,7 +46,7 @@ public partial class UniversalRepository<TDbContext, TEntity> : IUniversalReposi
         if (id is IEnumerable<object> keys)
             return await GetByCompositeIdAsync(keys, isReadonly);
 
-        var (keyProperty, idConverter, _) = EntityPrimaryKeyCache.GetPrimaryKeyProperties(typeof(TEntity), _context);
+        var (keyProperty, idConverter, _) = GetPrimaryKeyProperties(typeof(TEntity), _context);
 
         var convertedId = idConverter(id);
 
@@ -64,7 +66,7 @@ public partial class UniversalRepository<TDbContext, TEntity> : IUniversalReposi
     {
         ArgumentNullException.ThrowIfNull(keys);
 
-        var (_, _, compositeKey) = EntityPrimaryKeyCache.GetPrimaryKeyProperties(typeof(TEntity), _context);
+        var (_, _, compositeKey) = GetPrimaryKeyProperties(typeof(TEntity), _context);
         if (compositeKey is null)
             throw new InvalidOperationException($"Primary key for entity of type {typeof(TEntity).Name} not found.");
 
@@ -109,7 +111,7 @@ public partial class UniversalRepository<TDbContext, TEntity> : IUniversalReposi
     {
         ArgumentNullException.ThrowIfNull(entity);
 
-        var (keyProperty, _, primaryKey) = EntityPrimaryKeyCache.GetPrimaryKeyProperties(typeof(TEntity), _context);
+        var (keyProperty, _, primaryKey) = GetPrimaryKeyProperties(typeof(TEntity), _context);
 
         var existingEntity = primaryKey.Properties.Count > 1
             ? await GetEntityByCompositeKeyAsync(entity, primaryKey)
@@ -231,6 +233,31 @@ public partial class UniversalRepository<TDbContext, TEntity> : IUniversalReposi
         }
 
         return (parameter, predicate!);
+    }
+
+    private static (PropertyInfo PropertyInfo, Func<object, object> IdConverter, IKey PrimaryKey) GetPrimaryKeyProperties
+        (Type entityType, DbContext context)
+    {
+        return Cache.GetOrAdd(entityType, type =>
+        {
+            var primaryKey = context.Model.FindEntityType(type)?.FindPrimaryKey();
+            var propertyInfo = primaryKey?.Properties
+                .FirstOrDefault()?.PropertyInfo;
+
+            if (propertyInfo == null)
+                throw new InvalidOperationException($"Primary key for entity type {type.Name} not found.");
+
+            var parameter = Expression.Parameter(typeof(object), "id");
+
+            var body = Expression.Convert(
+                Expression.Convert(parameter, propertyInfo.PropertyType),
+                typeof(object)
+            );
+
+            var convert = Expression.Lambda<Func<object, object>>(body, parameter).Compile();
+
+            return (propertyInfo, convert, primaryKey!);
+        });
     }
 
     #endregion #region --------------------------- Private methods ---------------------------
