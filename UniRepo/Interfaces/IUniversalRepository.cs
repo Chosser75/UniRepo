@@ -54,7 +54,7 @@ public partial interface IUniversalRepository<TDbContext, TEntity>
     Task<TEntity?> GetByIdAsync(object id, bool isReadonly = false);
 
     /// <summary>
-    /// Asynchronously retrieves an entity of type <typeparamref name="TEntity"/> based on a single or composite primary key.
+    /// Asynchronously retrieves an entity of type <typeparamref name="TEntity"/> based on a composite or single primary key.
     /// Starts tracking found entity.
     /// </summary>
     /// <param name="keys">An IEnumerable collection of keys representing the composite primary key of the entity. If the entity has a single primary key, its value should be passed as IEnumerable{object} as well.
