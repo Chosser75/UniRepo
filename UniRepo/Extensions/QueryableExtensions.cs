@@ -26,15 +26,15 @@ public static class QueryableExtensions
 
         foreach (var columnName in selectionColumns)
         {
-            var accountProperty = typeof(TSource).GetProperty(
+            var sourceProperty = typeof(TSource).GetProperty(
                 columnName, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
-            if (accountProperty == null) continue;
+            if (sourceProperty == null) continue;
 
             var dtoProperty = typeof(TTarget).GetProperty(
                 columnName, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
             if (dtoProperty == null) continue;
 
-            var propertyAccess = Expression.MakeMemberAccess(parameter, accountProperty);
+            var propertyAccess = Expression.MakeMemberAccess(parameter, sourceProperty);
             var binding = Expression.Bind(dtoProperty, propertyAccess);
             bindings.Add(binding);
         }
