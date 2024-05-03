@@ -77,6 +77,17 @@ public partial interface IUniversalRepository<TDbContext, TEntity>
     Task<TEntity?> GetByCompositeIdAsync(IEnumerable<object> keys, bool isReadonly = false);
 
     /// <summary>
+    /// A simpler way to get an Entity by a composite key.
+    /// </summary>
+    /// <param name="keys">An array of keys representing the composite primary key of the entity.</param>
+    /// <returns>
+    /// A task that represents the asynchronous operation. The task result contains the entity matching the provided keys.
+    /// If no entity is found, or if the keys do not match, the task result is null.
+    /// </returns>
+    /// <exception cref="InvalidOperationException"></exception>
+    Task<TEntity?> GetByCompositeKeyAsync(object[] keys);
+
+    /// <summary>
     /// Asynchronously creates the specified entity in the database.
     /// </summary>
     /// <param name="entity">The entity to create.</param>

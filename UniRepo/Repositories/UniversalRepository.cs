@@ -86,6 +86,32 @@ public partial class UniversalRepository<TDbContext, TEntity> : IUniversalReposi
             : await _dbSet.Where(lambda).FirstOrDefaultAsync();
     }
 
+    /// <summary>
+    /// A simpler way to get an Entity by a composite key.
+    /// </summary>
+    /// <param name="keys"></param>
+    /// <returns></returns>
+    /// <exception cref="InvalidOperationException"></exception>
+    public async Task<TEntity?> GetByCompositeKeyAsync(object[] keys)
+    {
+        var compositeKey = _context.Model.FindEntityType(typeof(TEntity))?.FindPrimaryKey();
+        if (compositeKey == null || compositeKey.Properties.Count != keys.Length)
+        {
+            throw new InvalidOperationException($"Composite key mismatch or not found for entity {typeof(TEntity)}.");
+        }
+
+        var query = _dbSet.AsQueryable();
+
+        for (var i = 0; i < keys.Length; i++)
+        {
+            var keyName = compositeKey.Properties[i].Name;
+            var keyValue = keys[i];
+            query = query.Where(e => EF.Property<object>(e, keyName).Equals(keyValue));
+        }
+
+        return await query.FirstOrDefaultAsync();
+    }
+
     /// <inheritdoc />
     public virtual async Task<TEntity> CreateAsync(TEntity entity)
     {
